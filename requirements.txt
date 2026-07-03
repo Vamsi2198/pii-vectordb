@@ -1,0 +1,23 @@
+# ── Core (required; proven to run) ──
+numpy
+pyyaml
+
+# ── Web Dashboard (FastAPI frontend) ──
+fastapi
+uvicorn[standard]
+
+# ── Global NER detection (recommended for full coverage) ──
+# Names, addresses, orgs, medical conditions need NER, not regex.
+presidio-analyzer
+presidio-anonymizer
+# then: python -m spacy download en_core_web_lg
+
+# ── Real embeddings (recommended for production retrieval) ──
+sentence-transformers
+
+# ── Vector store connectors (install ONLY the one you use) ──
+# pinecone-client
+# qdrant-client
+# psycopg[binary]      # for pgvector
+# faiss-cpu            # for local FAISS
+# rank-bm25            # optional hybrid lexical scoring

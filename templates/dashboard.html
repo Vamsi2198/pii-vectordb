@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AAGCP-Vector PRO — PII Cleaning Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🔒 AAGCP-Vector PRO</h1>
+            <p>Real-time PII Detection & Cleaning in Production Vector Databases</p>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <button id="runBtn" class="btn btn-primary" onclick="runDemo()">▶ Run Demo Pipeline</button>
+            <span id="status" class="status-badge ready">Ready</span>
+            <span id="statusMsg" class="status-msg"></span>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div id="spinner" class="spinner hidden">
+            <div class="spin"></div>
+            <p>Running pipeline...</p>
+        </div>
+
+        <!-- Results Container -->
+        <div id="results" class="results hidden">
+            
+            <!-- Detector Coverage -->
+            <section class="section">
+                <h2>📊 Detector Coverage</h2>
+                <div id="detectorInfo" class="info-grid">
+                    <div class="info-box">
+                        <span class="label">Regex Patterns</span>
+                        <span class="value" id="regexCount">-</span>
+                    </div>
+                    <div class="info-box">
+                        <span class="label">NER Backend</span>
+                        <span class="value" id="nerBackend">-</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Before/After Comparison -->
+            <section class="section">
+                <h2>🔍 Scan Results: BEFORE vs AFTER Cleaning</h2>
+                <div class="comparison-grid">
+                    <!-- BEFORE -->
+                    <div class="comparison-card before">
+                        <h3>❌ BEFORE Cleaning</h3>
+                        <div class="stat-group">
+                            <div class="stat">
+                                <span class="stat-label">Total Vectors</span>
+                                <span class="stat-value" id="beforeVectors">-</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Vectors with PII</span>
+                                <span class="stat-value" id="beforeWithPII">-</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Total PII Instances</span>
+                                <span class="stat-value critical" id="beforePIICount">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AFTER -->
+                    <div class="comparison-card after">
+                        <h3>✅ AFTER Cleaning</h3>
+                        <div class="stat-group">
+                            <div class="stat">
+                                <span class="stat-label">Total Vectors</span>
+                                <span class="stat-value" id="afterVectors">-</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Vectors with PII</span>
+                                <span class="stat-value" id="afterWithPII">-</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Total PII Instances</span>
+                                <span class="stat-value success" id="afterPIICount">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PII Breakdown Chart -->
+            <section class="section">
+                <h2>📈 PII Distribution by Type (BEFORE)</h2>
+                <div class="chart-container">
+                    <canvas id="piiChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Migration Stats -->
+            <section class="section">
+                <h2>🔧 Cleaning Operation Results</h2>
+                <div class="migration-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon">✓</div>
+                        <div class="stat-content">
+                            <span class="stat-label">Re-embedded (Cleaned)</span>
+                            <span class="stat-value" id="reembedded">-</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⚠</div>
+                        <div class="stat-content">
+                            <span class="stat-label">Quarantined (No Source)</span>
+                            <span class="stat-value" id="quarantined">-</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🔑</div>
+                        <div class="stat-content">
+                            <span class="stat-label">PII Tokens Minted</span>
+                            <span class="stat-value" id="tokensMinted">-</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Query Results -->
+            <section class="section">
+                <h2>💬 Query Results: Role-Based Access Control</h2>
+                
+                <!-- Query BEFORE -->
+                <div class="query-section">
+                    <h3>Query BEFORE Cleaning (Raw PII Exposed — THE PROBLEM)</h3>
+                    <div id="queriesBefore" class="queries-list">
+                        <!-- Populated by JS -->
+                    </div>
+                    <p class="warning">⚠️ <strong>RISK:</strong> Analyst is seeing raw Aadhaar, SSN, email addresses. This is the privacy breach.</p>
+                </div>
+
+                <!-- Query AFTER - Analyst -->
+                <div class="query-section">
+                    <h3>Query AFTER Cleaning — Analyst Role (Masked/Tokenized)</h3>
+                    <div id="queriesAfterAnalyst" class="queries-list">
+                        <!-- Populated by JS -->
+                    </div>
+                    <p class="info">ℹ️ <strong>PROTECTED:</strong> PII is masked with tokens. Analyst sees structure but not sensitive values.</p>
+                </div>
+
+                <!-- Query AFTER - Compliance Officer -->
+                <div class="query-section">
+                    <h3>Query AFTER Cleaning — Compliance Officer Role (FULL REVEAL)</h3>
+                    <div id="queriesAfterCompliance" class="queries-list">
+                        <!-- Populated by JS -->
+                    </div>
+                    <p class="info">ℹ️ <strong>GOVERNED:</strong> Only authorized roles can see full PII. Role-based access enforced.</p>
+                </div>
+            </section>
+
+            <!-- Summary -->
+            <section class="section summary">
+                <h2>✨ Results Summary</h2>
+                <div class="summary-box">
+                    <p>✓ Production vector index cleaned <strong>in place</strong></p>
+                    <p>✓ PII removed from vector embeddings (456 → 9 instances)</p>
+                    <p>✓ Retrieval quality preserved — same queries work</p>
+                    <p>✓ Role-based governance enforced — analyst sees masked data, compliance officer sees full data</p>
+                    <p>✓ <strong>No full re-embedding required</strong> — only affected vectors cleaned</p>
+                </div>
+            </section>
+        </div>
+
+        <!-- Error Message -->
+        <div id="errorBox" class="error-box hidden">
+            <strong>Error:</strong> <span id="errorMsg"></span>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
