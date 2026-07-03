@@ -35,7 +35,9 @@ async function runDemo() {
       results.classList.remove("hidden");
       statusBadge.textContent = "Complete";
       statusBadge.className = "status-badge complete";
-      statusMsg.textContent = "✓ Demo executed successfully";
+      statusMsg.textContent = data.backend === "pinecone"
+        ? "✓ Pinecone pipeline executed successfully"
+        : "✓ Demo executed successfully";
     } else {
       throw new Error("Pipeline failed");
     }
@@ -178,6 +180,20 @@ function generateColors(count) {
 }
 
 // Auto-run on page load (optional - remove if you want manual trigger)
-document.addEventListener("DOMContentLoaded", () => {
-  console.log('Dashboard loaded. Click "Run Demo Pipeline" to execute.');
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const res = await fetch("/api/status");
+    const status = await res.json();
+    const statusMsg = document.getElementById("statusMsg");
+    const runBtn = document.getElementById("runBtn");
+    if (status.backend === "pinecone") {
+      statusMsg.textContent = `Pinecone: ${status.index_name} (${status.vector_count ?? "?"} vectors)`;
+      runBtn.textContent = "▶ Run Pipeline on Pinecone";
+    } else {
+      statusMsg.textContent = "Demo mode (no Pinecone) — using in-memory fake data";
+      runBtn.textContent = "▶ Run Demo Pipeline";
+    }
+  } catch (e) {
+    console.log('Dashboard loaded. Click "Run Demo Pipeline" to execute.');
+  }
 });

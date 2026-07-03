@@ -116,7 +116,11 @@ class PineconeConnector(VectorStoreConnector):
         self._ns = namespace
 
     def count(self):
-        return int(self._ix.describe_index_stats().get("total_vector_count", 0))
+        stats = self._ix.describe_index_stats()
+        if self._ns:
+            ns_stats = (stats.get("namespaces") or {}).get(self._ns, {})
+            return int(ns_stats.get("vector_count", 0))
+        return int(stats.get("total_vector_count", 0))
 
     def iter_all(self, batch: int = 500):
         for page in self._ix.list(namespace=self._ns):

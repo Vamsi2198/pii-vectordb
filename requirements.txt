@@ -16,7 +16,8 @@ presidio-anonymizer
 sentence-transformers
 
 # ── Vector store connectors (install ONLY the one you use) ──
-# pinecone-client
+# pinecone (the modern package name)
+pinecone
 # qdrant-client
 # psycopg[binary]      # for pgvector
 # faiss-cpu            # for local FAISS
