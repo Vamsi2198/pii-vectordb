@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Claude-style RAG UI</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <aside class="sidebar">
+        <div class="sidebar-brand">
+          <div class="brand-mark">C</div>
+          <div>
+            <h1>Claude RAG</h1>
+            <p>PDF retrieval assistant</p>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-head">
+            <span>Upload PDF</span>
+            <span class="hint">Max 1 file</span>
+          </div>
+          <input id="fileInput" type="file" accept="application/pdf" />
+          <label class="toggle-row" for="maskPiiCheckbox">
+            <input id="maskPiiCheckbox" type="checkbox" checked />
+            <span>Mask PII before indexing</span>
+          </label>
+          <button id="uploadBtn" class="button button-secondary">Upload</button>
+          <p class="upload-status" id="uploadStatus">No file uploaded</p>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-head">
+            <span>Session</span>
+            <span class="hint">Auth token</span>
+          </div>
+          <input id="authToken" type="text" value="admin_token" />
+          <div class="file-list" id="fileList">None</div>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <section class="hero-card">
+          <div>
+            <p class="eyebrow">Retrieval page</p>
+            <h2>Ask questions about uploaded documents</h2>
+            <p>Use the OCR/ingestion pipeline to load invoices and query them with a Claude-like interface.</p>
+          </div>
+        </section>
+
+        <section class="panel-card query-panel">
+          <label class="field-label" for="questionInput">Question</label>
+          <textarea id="questionInput" rows="5" placeholder="Type a question or invoice number..."></textarea>
+          <button id="queryBtn" class="button button-primary">Ask</button>
+        </section>
+
+        <section class="panel-card preview-panel">
+          <div class="panel-head">
+            <span>Uploaded document</span>
+            <span class="hint">Preview</span>
+          </div>
+          <div class="preview-container">
+            <iframe id="previewFrame" class="preview-frame" hidden></iframe>
+            <p id="previewMessage" class="preview-message">Upload a PDF to preview it here.</p>
+          </div>
+        </section>
+
+        <section class="panel-card results-panel">
+          <div class="result-section">
+            <h3>Answer</h3>
+            <pre id="answerOutput" class="output-box">No query yet.</pre>
+          </div>
+          <div class="result-section">
+            <h3>Retrieved chunks</h3>
+            <div id="retrievedOutput" class="retrieved-list">No results yet.</div>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script src="/static/app.js"></script>
+  </body>
+</html>

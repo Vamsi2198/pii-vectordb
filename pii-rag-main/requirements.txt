@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+python-multipart
+sentence-transformers
+pinecone-client
+numpy
+pdfplumber
+python-docx
+pandas
+openpyxl
+rank_bm25
