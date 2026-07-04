@@ -130,6 +130,15 @@ async def root():
     return HTMLResponse("<h1>Dashboard not found. Create templates/dashboard.html</h1>")
 
 
+@app.get("/rag-test")
+async def rag_test_page():
+    """Serve the RAG query test page."""
+    html_path = Path("templates/rag_test.html")
+    if html_path.exists():
+        return FileResponse(html_path, media_type="text/html")
+    return HTMLResponse("<h1>RAG Test page not found</h1>")
+
+
 @app.post("/api/run-demo")
 async def run_demo():
     """Run the real AAGCP scan → clean → re-scan workflow on the live Pinecone index."""
@@ -166,7 +175,12 @@ async def run_demo():
             if isinstance(vault_secret, str)
             else (vault_secret or b"pro-demo-fixed-secret-32-bytes!!")
         )
-        vault = PseudonymVault(secret=secret)
+        vault_store_path = os.getenv("VAULT_STORE_PATH")
+        if vault_store_path:
+            vault_store_path = Path(vault_store_path)
+        else:
+            vault_store_path = Path(".vault_store.json")
+        vault = PseudonymVault(path=str(vault_store_path), secret=secret)
         ret_dirty = GovernedRetriever(store, embedder, vault, detector=None)
 
         # Retrieve and log hit shapes for debugging (helps catch missing fields)
@@ -240,6 +254,70 @@ async def run_demo():
         demo_state["status"] = "error"
         demo_state["error"] = trace
         raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
+
+
+@app.get("/api/test-rag-query")
+async def test_rag_query(question: str = "who came to Apollo Hospital for diabetes checkup"):
+    """Test RAG query endpoint to verify chunks are returned with vault masking."""
+    try:
+        sys.path.insert(0, "pii-rag-main")
+        from RAG.workflow import search_question, bm25_metas
+        from RAG.access import resolve_role
+        
+        logger.info("RAG query test: question=%s, index_size=%s", question, len(bm25_metas) if bm25_metas else 0)
+        
+        if not bm25_metas or len(bm25_metas) == 0:
+            return {
+                "status": "no_data",
+                "message": "RAG index is empty - no documents ingested yet",
+                "chunks_in_index": 0,
+                "query": question
+            }
+        
+        # Test with ANALYST_PARTIAL role
+        results_analyst = search_question(question, role='ANALYST_PARTIAL', top_k=5)
+        logger.info("RAG ANALYST results: %s", len(results_analyst))
+        
+        analyst_results = []
+        for result in results_analyst[:3]:
+            meta = result.get('meta', {})
+            analyst_results.append({
+                "score": result.get('score'),
+                "text": meta.get('text', '')[:200],  # First 200 chars
+                "source": meta.get('source'),
+                "role": "ANALYST_PARTIAL (masked)"
+            })
+        
+        # Test with COMPLIANCE role
+        results_compliance = search_question(question, role='COMPLIANCE', top_k=5)
+        logger.info("RAG COMPLIANCE results: %s", len(results_compliance))
+        
+        compliance_results = []
+        for result in results_compliance[:3]:
+            meta = result.get('meta', {})
+            compliance_results.append({
+                "score": result.get('score'),
+                "text": meta.get('text', '')[:200],  # First 200 chars
+                "source": meta.get('source'),
+                "role": "COMPLIANCE (full reveal)"
+            })
+        
+        return {
+            "status": "success",
+            "query": question,
+            "chunks_in_index": len(bm25_metas),
+            "analyst_partial_results": analyst_results,
+            "compliance_results": compliance_results,
+            "total_results_found": len(results_analyst)
+        }
+        
+    except Exception as e:
+        logger.error("RAG query test failed: %s", traceback.format_exc())
+        return {
+            "status": "error",
+            "error": str(e),
+            "trace": traceback.format_exc()
+        }
 
 
 @app.post("/api/ingest")

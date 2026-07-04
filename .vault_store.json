@@ -1,0 +1,938 @@
+{
+  "store": {
+    "<EU_VAT_e8caa3e811e0868c>": {
+      "type": "EU_VAT",
+      "value": "ASSESSMENT",
+      "identities": [
+        "EU_VAT:assessment"
+      ]
+    },
+    "<SWIFT_BIC_6eac12c8e3143e0c>": {
+      "type": "SWIFT_BIC",
+      "value": "CLINICAL",
+      "identities": [
+        "SWIFT_BIC:clinical"
+      ]
+    },
+    "<SWIFT_BIC_58d14a87aac0cf55>": {
+      "type": "SWIFT_BIC",
+      "value": "DOCUMENT",
+      "identities": [
+        "SWIFT_BIC:document"
+      ]
+    },
+    "<DATE_TIME_d46c54d78699cd41>": {
+      "type": "DATE_TIME",
+      "value": "monthly",
+      "identities": [
+        "DATE_TIME:monthly"
+      ]
+    },
+    "<DATE_TIME_c8e1bf0af9aa77d6>": {
+      "type": "DATE_TIME",
+      "value": "June 20th, 2026",
+      "identities": [
+        "DATE_TIME:june 20th, 2026"
+      ]
+    },
+    "<PAN_ec0e717552d2463e>": {
+      "type": "PAN",
+      "value": "XYZPQ5678B",
+      "identities": [
+        "PAN:xyzpq5678b"
+      ]
+    },
+    "<EMAIL_ADDRESS_bde7b09c54df2319>": {
+      "type": "EMAIL_ADDRESS",
+      "value": "priya.sharma@bank.com",
+      "identities": [
+        "EMAIL_ADDRESS:priya.sharma@bank.com"
+      ]
+    },
+    "<IN_PHONE_60be62c599e44d83>": {
+      "type": "IN_PHONE",
+      "value": "+91 9988776655",
+      "identities": [
+        "IN_PHONE:+91 9988776655"
+      ]
+    },
+    "<PERSON_01c77bf1fd486823>": {
+      "type": "PERSON",
+      "value": "Priya",
+      "identities": [
+        "PERSON:priya"
+      ]
+    },
+    "<EU_VAT_b7ec1aeb80d82286>": {
+      "type": "EU_VAT",
+      "value": "SBIN0002456",
+      "identities": [
+        "EU_VAT:sbin0002456"
+      ]
+    },
+    "<US_BANK_NUMBER_5dbd74dbde80ad42>": {
+      "type": "US_BANK_NUMBER",
+      "value": "98765432101234",
+      "identities": [
+        "US_BANK_NUMBER:98765432101234"
+      ]
+    },
+    "<PERSON_27ead854bca382a3>": {
+      "type": "PERSON",
+      "value": "Priya Sharma",
+      "identities": [
+        "PERSON:priya sharma"
+      ]
+    },
+    "<DATE_TIME_0663acee1d3e706d>": {
+      "type": "DATE_TIME",
+      "value": "the month of June 2026",
+      "identities": [
+        "DATE_TIME:the month of june 2026"
+      ]
+    },
+    "<DATE_TIME_c5f95354050b43d3>": {
+      "type": "DATE_TIME",
+      "value": "the first day",
+      "identities": [
+        "DATE_TIME:the first day"
+      ]
+    },
+    "<PERSON_8e60bf6542ea7209>": {
+      "type": "PERSON",
+      "value": "Emma",
+      "identities": [
+        "PERSON:emma"
+      ]
+    },
+    "<DATE_TIME_88cfc7b0b6fd3f69>": {
+      "type": "DATE_TIME",
+      "value": "annual",
+      "identities": [
+        "DATE_TIME:annual"
+      ]
+    },
+    "<DATE_TIME_25ddbf49db4e0e82>": {
+      "type": "DATE_TIME",
+      "value": "1AA",
+      "identities": [
+        "DATE_TIME:1aa"
+      ]
+    },
+    "<LOCATION_00022a0c7394dee1>": {
+      "type": "LOCATION",
+      "value": "London",
+      "identities": [
+        "LOCATION:london"
+      ]
+    },
+    "<LOCATION_327fd82fcd2f3b83>": {
+      "type": "LOCATION",
+      "value": "Park Street",
+      "identities": [
+        "LOCATION:park street"
+      ]
+    },
+    "<PHONE_NUMBER_81ffe2d133aae692>": {
+      "type": "PHONE_NUMBER",
+      "value": "+44 207 946 0958",
+      "identities": [
+        "PHONE_NUMBER:+44 207 946 0958"
+      ]
+    },
+    "<EMAIL_ADDRESS_5226cdc8ba526539>": {
+      "type": "EMAIL_ADDRESS",
+      "value": "emma.wilson@consulting.co.uk",
+      "identities": [
+        "EMAIL_ADDRESS:emma.wilson@consulting.co.uk"
+      ]
+    },
+    "<LOCATION_2e6b9f3f3db9b59e>": {
+      "type": "LOCATION",
+      "value": "UK",
+      "identities": [
+        "LOCATION:uk"
+      ]
+    },
+    "<DATE_TIME_4e0ce7acdf7315f5>": {
+      "type": "DATE_TIME",
+      "value": "March 22nd, 1985",
+      "identities": [
+        "DATE_TIME:march 22nd, 1985"
+      ]
+    },
+    "<DATE_TIME_cc8933a95648f68d>": {
+      "type": "DATE_TIME",
+      "value": "June 1st, 2026",
+      "identities": [
+        "DATE_TIME:june 1st, 2026"
+      ]
+    },
+    "<PERSON_bf4fdf0b5407ed5f>": {
+      "type": "PERSON",
+      "value": "Emma Wilson",
+      "identities": [
+        "PERSON:emma wilson"
+      ]
+    },
+    "<EU_VAT_cb70b90db67d6ecb>": {
+      "type": "EU_VAT",
+      "value": "ONBOARDING",
+      "identities": [
+        "EU_VAT:onboarding"
+      ]
+    },
+    "<SWIFT_BIC_bc72750f87679277>": {
+      "type": "SWIFT_BIC",
+      "value": "EMPLOYEE",
+      "identities": [
+        "SWIFT_BIC:employee"
+      ]
+    },
+    "<DATE_TIME_bfecce69fca33f80>": {
+      "type": "DATE_TIME",
+      "value": "24 hours",
+      "identities": [
+        "DATE_TIME:24 hours"
+      ]
+    },
+    "<DATE_TIME_de0fdc9b6c2c1f96>": {
+      "type": "DATE_TIME",
+      "value": "the\nmonth of May 2026",
+      "identities": [
+        "DATE_TIME:the\nmonth of may 2026"
+      ]
+    },
+    "<US_SSN_64f43d0d6fa603bb>": {
+      "type": "US_SSN",
+      "value": "456-78-9012",
+      "identities": [
+        "US_SSN:456-78-9012"
+      ]
+    },
+    "<PHONE_NUMBER_e2b3844157402422>": {
+      "type": "PHONE_NUMBER",
+      "value": "555-123-4567",
+      "identities": [
+        "PHONE_NUMBER:555-123-4567"
+      ]
+    },
+    "<EMAIL_ADDRESS_88406cb34b91e7b0>": {
+      "type": "EMAIL_ADDRESS",
+      "value": "john.smith@company.com",
+      "identities": [
+        "EMAIL_ADDRESS:john.smith@company.com"
+      ]
+    },
+    "<LOCATION_815846e39680def0>": {
+      "type": "LOCATION",
+      "value": "New York",
+      "identities": [
+        "LOCATION:new york"
+      ]
+    },
+    "<NRP_a29fa0fdab446930>": {
+      "type": "NRP",
+      "value": "American",
+      "identities": [
+        "NRP:american"
+      ]
+    },
+    "<PERSON_620a99f72fe7cfc9>": {
+      "type": "PERSON",
+      "value": "John Smith",
+      "identities": [
+        "PERSON:john smith"
+      ]
+    },
+    "<DATE_TIME_ef8af05f471fbc9d>": {
+      "type": "DATE_TIME",
+      "value": "2026",
+      "identities": [
+        "DATE_TIME:2026"
+      ]
+    },
+    "<DATE_TIME_86e782621fd3201c>": {
+      "type": "DATE_TIME",
+      "value": "June 15th",
+      "identities": [
+        "DATE_TIME:june 15th"
+      ]
+    },
+    "<SWIFT_BIC_1cdcb0dd7d7b2d8b>": {
+      "type": "SWIFT_BIC",
+      "value": "SERVICES",
+      "identities": [
+        "SWIFT_BIC:services"
+      ]
+    },
+    "<PAN_dbd4b05f254cca67>": {
+      "type": "PAN",
+      "value": "ABCDE1234A",
+      "identities": [
+        "PAN:abcde1234a"
+      ]
+    },
+    "<DATE_TIME_7b0501f130f6ab39>": {
+      "type": "DATE_TIME",
+      "value": "the past eight years",
+      "identities": [
+        "DATE_TIME:the past eight years"
+      ]
+    },
+    "<PERSON_eb44e290b7aa747d>": {
+      "type": "PERSON",
+      "value": "Iyer",
+      "identities": [
+        "PERSON:iyer"
+      ]
+    },
+    "<MRN_3936f69ceb4d4280>": {
+      "type": "MRN",
+      "value": "MRN-456789",
+      "identities": [
+        "MRN:mrn-456789"
+      ]
+    },
+    "<EMAIL_ADDRESS_9c67a760ae09a99d>": {
+      "type": "EMAIL_ADDRESS",
+      "value": "ramesh.iyer@healthcare.in",
+      "identities": [
+        "EMAIL_ADDRESS:ramesh.iyer@healthcare.in"
+      ]
+    },
+    "<IN_PHONE_8d085dbcbc89ab46>": {
+      "type": "IN_PHONE",
+      "value": "+91 9876543210",
+      "identities": [
+        "IN_PHONE:+91 9876543210"
+      ]
+    },
+    "<AADHAAR_783398591b54aac3>": {
+      "type": "AADHAAR",
+      "value": "3847 2156 9034",
+      "identities": [
+        "AADHAAR:3847 2156 9034"
+      ]
+    },
+    "<LOCATION_2189f01a719534f5>": {
+      "type": "LOCATION",
+      "value": "Mumbai",
+      "identities": [
+        "LOCATION:mumbai"
+      ]
+    },
+    "<DATE_TIME_9da11cafaea97d54>": {
+      "type": "DATE_TIME",
+      "value": "51-year-old",
+      "identities": [
+        "DATE_TIME:51-year-old"
+      ]
+    },
+    "<PERSON_35b6093414c9724b>": {
+      "type": "PERSON",
+      "value": "Ramesh Iyer",
+      "identities": [
+        "PERSON:ramesh iyer"
+      ]
+    },
+    "<DATE_TIME_f92532e549387d92>": {
+      "type": "DATE_TIME",
+      "value": "June 15th, 2026",
+      "identities": [
+        "DATE_TIME:june 15th, 2026"
+      ]
+    },
+    "<US_DRIVER_LICENSE_46036f5a8c4847c6>": {
+      "type": "US_DRIVER_LICENSE",
+      "value": "5432109",
+      "identities": [
+        "US_DRIVER_LICENSE:5432109"
+      ]
+    },
+    "<US_SSN_231c747c96537d78>": {
+      "type": "US_SSN",
+      "value": "234-56-7890",
+      "identities": [
+        "US_SSN:234-56-7890"
+      ]
+    },
+    "<EMAIL_ADDRESS_43593a8c85d05263>": {
+      "type": "EMAIL_ADDRESS",
+      "value": "vikram.das@healthcare.in",
+      "identities": [
+        "EMAIL_ADDRESS:vikram.das@healthcare.in"
+      ]
+    },
+    "<PHONE_NUMBER_5b208412dac77dca>": {
+      "type": "PHONE_NUMBER",
+      "value": "555-234-5678",
+      "identities": [
+        "PHONE_NUMBER:555-234-5678"
+      ]
+    },
+    "<DATE_TIME_023cde0107a6bc48>": {
+      "type": "DATE_TIME",
+      "value": "November 3rd, 1968",
+      "identities": [
+        "DATE_TIME:november 3rd, 1968"
+      ]
+    },
+    "<PERSON_74a5e19be929c5bf>": {
+      "type": "PERSON",
+      "value": "Vikram Das",
+      "identities": [
+        "PERSON:vikram das"
+      ]
+    },
+    "<EU_VAT_86e534ccd058c245>": {
+      "type": "EU_VAT",
+      "value": "AUTHORIZATION",
+      "identities": [
+        "EU_VAT:authorization"
+      ]
+    },
+    "<EU_VAT_bd8747c62ce2d6f6>": {
+      "type": "EU_VAT",
+      "value": "HEALTHCARE",
+      "identities": [
+        "EU_VAT:healthcare"
+      ]
+    },
+    "<DATE_TIME_beb97a6d0a8e3b7d>": {
+      "type": "DATE_TIME",
+      "value": "five-night",
+      "identities": [
+        "DATE_TIME:five-night"
+      ]
+    },
+    "<DATE_TIME_eb473263afaf494d>": {
+      "type": "DATE_TIME",
+      "value": "July 15th",
+      "identities": [
+        "DATE_TIME:july 15th"
+      ]
+    },
+    "<LOCATION_849f13433d650c2d>": {
+      "type": "LOCATION",
+      "value": "the Grand\nHotel",
+      "identities": [
+        "LOCATION:the grand\nhotel"
+      ]
+    },
+    "<DATE_TIME_70de898548f26a46>": {
+      "type": "DATE_TIME",
+      "value": "May 10th, 1992",
+      "identities": [
+        "DATE_TIME:may 10th, 1992"
+      ]
+    },
+    "<PERSON_508fd67bf77dcad2>": {
+      "type": "PERSON",
+      "value": "Garcia",
+      "identities": [
+        "PERSON:garcia"
+      ]
+    },
+    "<DATE_TIME_4cd617c430c18ac4>": {
+      "type": "DATE_TIME",
+      "value": "123456789",
+      "identities": [
+        "DATE_TIME:123456789"
+      ]
+    },
+    "<PHONE_NUMBER_85659cc4c8c005b9>": {
+      "type": "PHONE_NUMBER",
+      "value": "555-456-7890",
+      "identities": [
+        "PHONE_NUMBER:555-456-7890"
+      ]
+    },
+    "<EMAIL_ADDRESS_3c3102987e7e5932>": {
+      "type": "EMAIL_ADDRESS",
+      "value": "olivia.garcia@company.com",
+      "identities": [
+        "EMAIL_ADDRESS:olivia.garcia@company.com"
+      ]
+    },
+    "<DATE_TIME_d4d6ad6b7d550e18>": {
+      "type": "DATE_TIME",
+      "value": "July 2026",
+      "identities": [
+        "DATE_TIME:july 2026"
+      ]
+    },
+    "<PERSON_1dafbbdb37ea23ba>": {
+      "type": "PERSON",
+      "value": "Olivia Garcia",
+      "identities": [
+        "PERSON:olivia garcia"
+      ]
+    },
+    "<EU_VAT_9ee27c8c08a19a69>": {
+      "type": "EU_VAT",
+      "value": "ACCOMMODATION",
+      "identities": [
+        "EU_VAT:accommodation"
+      ]
+    },
+    "<DATE_TIME_d2fc7607c218256a>": {
+      "type": "DATE_TIME",
+      "value": "thirty days",
+      "identities": [
+        "DATE_TIME:thirty days"
+      ]
+    },
+    "<DATE_TIME_eb3af3d651024227>": {
+      "type": "DATE_TIME",
+      "value": "June\n2026",
+      "identities": [
+        "DATE_TIME:june\n2026"
+      ]
+    },
+    "<PAN_e3e0144fe996d8b4>": {
+      "type": "PAN",
+      "value": "MNPQR2345C",
+      "identities": [
+        "PAN:mnpqr2345c"
+      ]
+    },
+    "<EMAIL_ADDRESS_5cdcc3d2d2eabc60>": {
+      "type": "EMAIL_ADDRESS",
+      "value": "kavya.reddy@company.com",
+      "identities": [
+        "EMAIL_ADDRESS:kavya.reddy@company.com"
+      ]
+    },
+    "<LOCATION_16f33cf52b28614d>": {
+      "type": "LOCATION",
+      "value": "+91 9123456789",
+      "identities": [
+        "LOCATION:+91 9123456789"
+      ]
+    },
+    "<LOCATION_58cf42a2ef0badce>": {
+      "type": "LOCATION",
+      "value": "India",
+      "identities": [
+        "LOCATION:india"
+      ]
+    },
+    "<LOCATION_abfeec0bff1e9785>": {
+      "type": "LOCATION",
+      "value": "Bangalore",
+      "identities": [
+        "LOCATION:bangalore"
+      ]
+    },
+    "<PERSON_fefd0396e0489c55>": {
+      "type": "PERSON",
+      "value": "Kavya Reddy",
+      "identities": [
+        "PERSON:kavya reddy"
+      ]
+    },
+    "<DATE_TIME_84d82e8ba537b14f>": {
+      "type": "DATE_TIME",
+      "value": "2026-98765",
+      "identities": [
+        "DATE_TIME:2026-98765"
+      ]
+    },
+    "<DATE_TIME_f8bc002664cfb35f>": {
+      "type": "DATE_TIME",
+      "value": "June 18th, 2026",
+      "identities": [
+        "DATE_TIME:june 18th, 2026"
+      ]
+    },
+    "<EU_VAT_d8b9eaad92c0e8c0>": {
+      "type": "EU_VAT",
+      "value": "COMMERCIAL",
+      "identities": [
+        "EU_VAT:commercial"
+      ]
+    },
+    "<DATE_TIME_5b6720a2f4a127e8>": {
+      "type": "DATE_TIME",
+      "value": "the past three years",
+      "identities": [
+        "DATE_TIME:the past three years"
+      ]
+    },
+    "<MRN_95d8fc8b1dc2ba25>": {
+      "type": "MRN",
+      "value": "MRN-654321",
+      "identities": [
+        "MRN:mrn-654321"
+      ]
+    },
+    "<LOCATION_6ac20de70933e948>": {
+      "type": "LOCATION",
+      "value": "INS-9876543",
+      "identities": [
+        "LOCATION:ins-9876543"
+      ]
+    },
+    "<PERSON_5369a0c184bdf2a1>": {
+      "type": "PERSON",
+      "value": "Brown",
+      "identities": [
+        "PERSON:brown"
+      ]
+    },
+    "<US_SSN_07bc9ec2dee3bc87>": {
+      "type": "US_SSN",
+      "value": "789-01-2345",
+      "identities": [
+        "US_SSN:789-01-2345"
+      ]
+    },
+    "<PHONE_NUMBER_c1eedce5185d45ad>": {
+      "type": "PHONE_NUMBER",
+      "value": "555-987-6543",
+      "identities": [
+        "PHONE_NUMBER:555-987-6543"
+      ]
+    },
+    "<EMAIL_ADDRESS_cdfa48a863c1720d>": {
+      "type": "EMAIL_ADDRESS",
+      "value": "liam.brown@company.com",
+      "identities": [
+        "EMAIL_ADDRESS:liam.brown@company.com"
+      ]
+    },
+    "<DATE_TIME_3c50628ebea6dac5>": {
+      "type": "DATE_TIME",
+      "value": "June\n18th, 2026",
+      "identities": [
+        "DATE_TIME:june\n18th, 2026"
+      ]
+    },
+    "<DATE_TIME_296ae586b75b5057>": {
+      "type": "DATE_TIME",
+      "value": "52-year-old",
+      "identities": [
+        "DATE_TIME:52-year-old"
+      ]
+    },
+    "<PERSON_c18001d2a3a48672>": {
+      "type": "PERSON",
+      "value": "Liam Brown",
+      "identities": [
+        "PERSON:liam brown"
+      ]
+    }
+  },
+  "identities": {
+    "EU_VAT:assessment": [
+      "<EU_VAT_e8caa3e811e0868c>"
+    ],
+    "SWIFT_BIC:clinical": [
+      "<SWIFT_BIC_6eac12c8e3143e0c>"
+    ],
+    "SWIFT_BIC:document": [
+      "<SWIFT_BIC_58d14a87aac0cf55>"
+    ],
+    "DATE_TIME:monthly": [
+      "<DATE_TIME_d46c54d78699cd41>"
+    ],
+    "DATE_TIME:june 20th, 2026": [
+      "<DATE_TIME_c8e1bf0af9aa77d6>"
+    ],
+    "PAN:xyzpq5678b": [
+      "<PAN_ec0e717552d2463e>"
+    ],
+    "EMAIL_ADDRESS:priya.sharma@bank.com": [
+      "<EMAIL_ADDRESS_bde7b09c54df2319>"
+    ],
+    "IN_PHONE:+91 9988776655": [
+      "<IN_PHONE_60be62c599e44d83>"
+    ],
+    "PERSON:priya": [
+      "<PERSON_01c77bf1fd486823>"
+    ],
+    "EU_VAT:sbin0002456": [
+      "<EU_VAT_b7ec1aeb80d82286>"
+    ],
+    "US_BANK_NUMBER:98765432101234": [
+      "<US_BANK_NUMBER_5dbd74dbde80ad42>"
+    ],
+    "PERSON:priya sharma": [
+      "<PERSON_27ead854bca382a3>"
+    ],
+    "DATE_TIME:the month of june 2026": [
+      "<DATE_TIME_0663acee1d3e706d>"
+    ],
+    "DATE_TIME:the first day": [
+      "<DATE_TIME_c5f95354050b43d3>"
+    ],
+    "PERSON:emma": [
+      "<PERSON_8e60bf6542ea7209>"
+    ],
+    "DATE_TIME:annual": [
+      "<DATE_TIME_88cfc7b0b6fd3f69>"
+    ],
+    "DATE_TIME:1aa": [
+      "<DATE_TIME_25ddbf49db4e0e82>"
+    ],
+    "LOCATION:london": [
+      "<LOCATION_00022a0c7394dee1>"
+    ],
+    "LOCATION:park street": [
+      "<LOCATION_327fd82fcd2f3b83>"
+    ],
+    "PHONE_NUMBER:+44 207 946 0958": [
+      "<PHONE_NUMBER_81ffe2d133aae692>"
+    ],
+    "EMAIL_ADDRESS:emma.wilson@consulting.co.uk": [
+      "<EMAIL_ADDRESS_5226cdc8ba526539>"
+    ],
+    "LOCATION:uk": [
+      "<LOCATION_2e6b9f3f3db9b59e>"
+    ],
+    "DATE_TIME:march 22nd, 1985": [
+      "<DATE_TIME_4e0ce7acdf7315f5>"
+    ],
+    "DATE_TIME:june 1st, 2026": [
+      "<DATE_TIME_cc8933a95648f68d>"
+    ],
+    "PERSON:emma wilson": [
+      "<PERSON_bf4fdf0b5407ed5f>"
+    ],
+    "EU_VAT:onboarding": [
+      "<EU_VAT_cb70b90db67d6ecb>"
+    ],
+    "SWIFT_BIC:employee": [
+      "<SWIFT_BIC_bc72750f87679277>"
+    ],
+    "DATE_TIME:24 hours": [
+      "<DATE_TIME_bfecce69fca33f80>"
+    ],
+    "DATE_TIME:the\nmonth of may 2026": [
+      "<DATE_TIME_de0fdc9b6c2c1f96>"
+    ],
+    "US_SSN:456-78-9012": [
+      "<US_SSN_64f43d0d6fa603bb>"
+    ],
+    "PHONE_NUMBER:555-123-4567": [
+      "<PHONE_NUMBER_e2b3844157402422>"
+    ],
+    "EMAIL_ADDRESS:john.smith@company.com": [
+      "<EMAIL_ADDRESS_88406cb34b91e7b0>"
+    ],
+    "LOCATION:new york": [
+      "<LOCATION_815846e39680def0>"
+    ],
+    "NRP:american": [
+      "<NRP_a29fa0fdab446930>"
+    ],
+    "PERSON:john smith": [
+      "<PERSON_620a99f72fe7cfc9>"
+    ],
+    "DATE_TIME:2026": [
+      "<DATE_TIME_ef8af05f471fbc9d>"
+    ],
+    "DATE_TIME:june 15th": [
+      "<DATE_TIME_86e782621fd3201c>"
+    ],
+    "SWIFT_BIC:services": [
+      "<SWIFT_BIC_1cdcb0dd7d7b2d8b>"
+    ],
+    "PAN:abcde1234a": [
+      "<PAN_dbd4b05f254cca67>"
+    ],
+    "DATE_TIME:the past eight years": [
+      "<DATE_TIME_7b0501f130f6ab39>"
+    ],
+    "PERSON:iyer": [
+      "<PERSON_eb44e290b7aa747d>"
+    ],
+    "MRN:mrn-456789": [
+      "<MRN_3936f69ceb4d4280>"
+    ],
+    "EMAIL_ADDRESS:ramesh.iyer@healthcare.in": [
+      "<EMAIL_ADDRESS_9c67a760ae09a99d>"
+    ],
+    "IN_PHONE:+91 9876543210": [
+      "<IN_PHONE_8d085dbcbc89ab46>"
+    ],
+    "AADHAAR:3847 2156 9034": [
+      "<AADHAAR_783398591b54aac3>"
+    ],
+    "LOCATION:mumbai": [
+      "<LOCATION_2189f01a719534f5>"
+    ],
+    "DATE_TIME:51-year-old": [
+      "<DATE_TIME_9da11cafaea97d54>"
+    ],
+    "PERSON:ramesh iyer": [
+      "<PERSON_35b6093414c9724b>"
+    ],
+    "DATE_TIME:june 15th, 2026": [
+      "<DATE_TIME_f92532e549387d92>"
+    ],
+    "US_DRIVER_LICENSE:5432109": [
+      "<US_DRIVER_LICENSE_46036f5a8c4847c6>"
+    ],
+    "US_SSN:234-56-7890": [
+      "<US_SSN_231c747c96537d78>"
+    ],
+    "EMAIL_ADDRESS:vikram.das@healthcare.in": [
+      "<EMAIL_ADDRESS_43593a8c85d05263>"
+    ],
+    "PHONE_NUMBER:555-234-5678": [
+      "<PHONE_NUMBER_5b208412dac77dca>"
+    ],
+    "DATE_TIME:november 3rd, 1968": [
+      "<DATE_TIME_023cde0107a6bc48>"
+    ],
+    "PERSON:vikram das": [
+      "<PERSON_74a5e19be929c5bf>"
+    ],
+    "EU_VAT:authorization": [
+      "<EU_VAT_86e534ccd058c245>"
+    ],
+    "EU_VAT:healthcare": [
+      "<EU_VAT_bd8747c62ce2d6f6>"
+    ],
+    "DATE_TIME:five-night": [
+      "<DATE_TIME_beb97a6d0a8e3b7d>"
+    ],
+    "DATE_TIME:july 15th": [
+      "<DATE_TIME_eb473263afaf494d>"
+    ],
+    "LOCATION:the grand\nhotel": [
+      "<LOCATION_849f13433d650c2d>"
+    ],
+    "DATE_TIME:may 10th, 1992": [
+      "<DATE_TIME_70de898548f26a46>"
+    ],
+    "PERSON:garcia": [
+      "<PERSON_508fd67bf77dcad2>"
+    ],
+    "DATE_TIME:123456789": [
+      "<DATE_TIME_4cd617c430c18ac4>"
+    ],
+    "PHONE_NUMBER:555-456-7890": [
+      "<PHONE_NUMBER_85659cc4c8c005b9>"
+    ],
+    "EMAIL_ADDRESS:olivia.garcia@company.com": [
+      "<EMAIL_ADDRESS_3c3102987e7e5932>"
+    ],
+    "DATE_TIME:july 2026": [
+      "<DATE_TIME_d4d6ad6b7d550e18>"
+    ],
+    "PERSON:olivia garcia": [
+      "<PERSON_1dafbbdb37ea23ba>"
+    ],
+    "EU_VAT:accommodation": [
+      "<EU_VAT_9ee27c8c08a19a69>"
+    ],
+    "DATE_TIME:thirty days": [
+      "<DATE_TIME_d2fc7607c218256a>"
+    ],
+    "DATE_TIME:june\n2026": [
+      "<DATE_TIME_eb3af3d651024227>"
+    ],
+    "PAN:mnpqr2345c": [
+      "<PAN_e3e0144fe996d8b4>"
+    ],
+    "EMAIL_ADDRESS:kavya.reddy@company.com": [
+      "<EMAIL_ADDRESS_5cdcc3d2d2eabc60>"
+    ],
+    "LOCATION:+91 9123456789": [
+      "<LOCATION_16f33cf52b28614d>"
+    ],
+    "LOCATION:india": [
+      "<LOCATION_58cf42a2ef0badce>"
+    ],
+    "LOCATION:bangalore": [
+      "<LOCATION_abfeec0bff1e9785>"
+    ],
+    "PERSON:kavya reddy": [
+      "<PERSON_fefd0396e0489c55>"
+    ],
+    "DATE_TIME:2026-98765": [
+      "<DATE_TIME_84d82e8ba537b14f>"
+    ],
+    "DATE_TIME:june 18th, 2026": [
+      "<DATE_TIME_f8bc002664cfb35f>"
+    ],
+    "EU_VAT:commercial": [
+      "<EU_VAT_d8b9eaad92c0e8c0>"
+    ],
+    "DATE_TIME:the past three years": [
+      "<DATE_TIME_5b6720a2f4a127e8>"
+    ],
+    "MRN:mrn-654321": [
+      "<MRN_95d8fc8b1dc2ba25>"
+    ],
+    "LOCATION:ins-9876543": [
+      "<LOCATION_6ac20de70933e948>"
+    ],
+    "PERSON:brown": [
+      "<PERSON_5369a0c184bdf2a1>"
+    ],
+    "US_SSN:789-01-2345": [
+      "<US_SSN_07bc9ec2dee3bc87>"
+    ],
+    "PHONE_NUMBER:555-987-6543": [
+      "<PHONE_NUMBER_c1eedce5185d45ad>"
+    ],
+    "EMAIL_ADDRESS:liam.brown@company.com": [
+      "<EMAIL_ADDRESS_cdfa48a863c1720d>"
+    ],
+    "DATE_TIME:june\n18th, 2026": [
+      "<DATE_TIME_3c50628ebea6dac5>"
+    ],
+    "DATE_TIME:52-year-old": [
+      "<DATE_TIME_296ae586b75b5057>"
+    ],
+    "PERSON:liam brown": [
+      "<PERSON_c18001d2a3a48672>"
+    ]
+  },
+  "idnames": {
+    "PERSON:priya": [
+      "Priya"
+    ],
+    "PERSON:priya sharma": [
+      "Priya Sharma"
+    ],
+    "PERSON:emma": [
+      "Emma"
+    ],
+    "PERSON:emma wilson": [
+      "Emma Wilson"
+    ],
+    "PERSON:john smith": [
+      "John Smith"
+    ],
+    "PERSON:iyer": [
+      "Iyer"
+    ],
+    "PERSON:ramesh iyer": [
+      "Ramesh Iyer"
+    ],
+    "PERSON:vikram das": [
+      "Vikram Das"
+    ],
+    "PERSON:garcia": [
+      "Garcia"
+    ],
+    "PERSON:olivia garcia": [
+      "Olivia Garcia"
+    ],
+    "PERSON:kavya reddy": [
+      "Kavya Reddy"
+    ],
+    "PERSON:brown": [
+      "Brown"
+    ],
+    "PERSON:liam brown": [
+      "Liam Brown"
+    ]
+  },
+  "shredded": []
+}

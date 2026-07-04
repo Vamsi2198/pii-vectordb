@@ -32,6 +32,8 @@ class PseudonymVault:
             self._identities.setdefault(identity_id, set()).add(token)
             if display_name:
                 self._idnames.setdefault(identity_id, set()).add(display_name)
+        if self.path:
+            self.save()
         return token
 
     def rehydrate(self, text: str, reveal: set, partial: Dict[str, str]) -> str:

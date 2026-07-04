@@ -1,16 +1,25 @@
 from typing import Dict
 
-def resolve_role(auth_token:str) -> str:
-    if auth_token == "admin_token":
+def resolve_role(auth_token: str) -> str:
+    if not auth_token:
+        return "analyst"
+    token = auth_token.strip().lower()
+    if token.startswith("bearer "):
+        token = token[len("bearer "):].strip()
+
+    if token in {"admin_token", "admin"}:
         return "admin"
-    if auth_token=="finance_token":
+    if token in {"finance_token", "finance"}:
         return "finance"
-    if auth_token=="manager_token":
+    if token in {"manager_token", "manager"}:
         return "manager"
     return "analyst"
 
 def is_allowed(role:str, meta: Dict)-> bool:
     allowed = meta.get("allowed_roles", [])
+    # If no roles specified, allow all access (default to permissive)
+    if not allowed:
+        return True
     return role in allowed
 
 

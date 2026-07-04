@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RAG Query Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        h1 { color: #333; }
+        .form-group { margin: 15px 0; }
+        input { padding: 8px; width: 100%; max-width: 400px; }
+        button { background: #0066cc; color: white; padding: 10px 20px; border: none; cursor: pointer; border-radius: 4px; }
+        button:hover { background: #0052a3; }
+        .results { margin-top: 20px; padding: 15px; background: #f9f9f9; border-left: 4px solid #0066cc; border-radius: 4px; }
+        .result-item { margin: 10px 0; padding: 10px; background: white; border: 1px solid #ddd; border-radius: 4px; }
+        .score { color: #666; font-size: 0.9em; }
+        .text { font-size: 0.95em; line-height: 1.4; margin: 5px 0; }
+        .source { color: #888; font-size: 0.85em; }
+        .role { background: #e3f2fd; padding: 3px 8px; border-radius: 3px; font-size: 0.85em; }
+        .error { color: #d32f2f; padding: 10px; background: #ffebee; border-radius: 4px; }
+        .success { color: #388e3c; padding: 10px; background: #e8f5e9; border-radius: 4px; }
+        .loading { color: #1976d2; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 RAG Query Test</h1>
+        <p>Test the RAG workflow query endpoint to verify chunks are being returned with vault masking.</p>
+        
+        <div class="form-group">
+            <label>Query:</label>
+            <input type="text" id="question" value="who came to Apollo Hospital for diabetes checkup">
+        </div>
+        
+        <button onclick="testQuery()">▶ Test Query</button>
+        
+        <div id="output" style="display: none;" class="results">
+            <h2>Results</h2>
+            <div id="resultContent"></div>
+        </div>
+    </div>
+
+    <script>
+        async function testQuery() {
+            const question = document.getElementById('question').value;
+            const output = document.getElementById('output');
+            const content = document.getElementById('resultContent');
+            
+            content.innerHTML = '<p class="loading">⏳ Testing query...</p>';
+            output.style.display = 'block';
+            
+            try {
+                const response = await fetch(`/api/test-rag-query?question=${encodeURIComponent(question)}`);
+                const data = await response.json();
+                
+                let html = '';
+                
+                if (data.status === 'no_data') {
+                    html = `<div class="error">
+                        ⚠️ No data in RAG index (${data.chunks_in_index} chunks)
+                        <p>Please ingest documents first via the main dashboard or RAG upload endpoint.</p>
+                    </div>`;
+                } else if (data.status === 'error') {
+                    html = `<div class="error">
+                        ❌ Error: ${data.error}
+                        <pre>${data.trace}</pre>
+                    </div>`;
+                } else if (data.status === 'success') {
+                    html = `<div class="success">
+                        ✅ Query successful! Found ${data.total_results_found} results (${data.chunks_in_index} chunks in index)
+                    </div>`;
+                    
+                    html += '<h3>ANALYST_PARTIAL Role (Masked)</h3>';
+                    if (data.analyst_partial_results.length === 0) {
+                        html += '<p>No results for analyst role</p>';
+                    } else {
+                        data.analyst_partial_results.forEach((result, i) => {
+                            html += `<div class="result-item">
+                                <strong>[${i+1}] Score: ${result.score.toFixed(4)}</strong>
+                                <span class="role">${result.role}</span>
+                                <div class="text">${result.text}</div>
+                                <div class="source">📄 ${result.source}</div>
+                            </div>`;
+                        });
+                    }
+                    
+                    html += '<h3>COMPLIANCE Role (Full Reveal)</h3>';
+                    if (data.compliance_results.length === 0) {
+                        html += '<p>No results for compliance role</p>';
+                    } else {
+                        data.compliance_results.forEach((result, i) => {
+                            html += `<div class="result-item">
+                                <strong>[${i+1}] Score: ${result.score.toFixed(4)}</strong>
+                                <span class="role">${result.role}</span>
+                                <div class="text">${result.text}</div>
+                                <div class="source">📄 ${result.source}</div>
+                            </div>`;
+                        });
+                    }
+                }
+                
+                content.innerHTML = html;
+            } catch (error) {
+                content.innerHTML = `<div class="error">❌ Network error: ${error.message}</div>`;
+            }
+        }
+        
+        // Test on load
+        window.onload = () => testQuery();
+    </script>
+</body>
+</html>

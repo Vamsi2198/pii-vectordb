@@ -11,8 +11,7 @@ load_dotenv()
 from Data_ingestion.data_ingestion import load_pdf, load_docx, load_excel, load_text
 from Data_ingestion.chunking import chunk_text,chunk_by_paragraph
 from Data_ingestion.embed import embed_texts
-from Data_ingestion.pii import make_sensitive_text
-
+from Data_ingestion.pii import make_sensitive_text, vault, HAS_VAULT, reload_vault_if_needed
 
 from RAG.access import resolve_role, is_allowed
 
@@ -57,6 +56,7 @@ def prepare_chunks(documents: List[Dict], chunk_size: int = 800, overlap: int = 
                 "source": source,
                 "text": masked_piece,
                 "masked_spans": masked_spans,
+                "allowed_roles": ["admin", "finance", "manager", "analyst"],  # Allow all roles by default
                 **extra_meta,
             })
 
@@ -115,30 +115,69 @@ def search_question(question: str, role: str, top_k: int = 5, mask_pii: Optional
     raw_results = index.search(query_vec, k=max(top_k * 2, 20))
 
     bm25_scores = bm25.get_scores(tokenize_text(question)) if bm25 is not None else None
+    id_to_idx = {meta.get("id"): idx for idx, meta in enumerate(bm25_metas) if meta.get("id")}
 
     scored_results = []
-    for idx, meta in enumerate(bm25_metas):
+    for hit in raw_results[0]:
+        meta = dict(hit.get("meta", {}) or {})
+        hit_id = meta.get("id")
+
+        if hit_id and hit_id in id_to_idx:
+            local_meta = bm25_metas[id_to_idx[hit_id]]
+            meta = {**local_meta, **meta}
+
         if not is_allowed(role, meta):
             continue
 
-        dense_score = 0.0
-        for hit in raw_results[0]:
-            if hit["meta"] is meta:
-                dense_score = hit["score"]
-                break
-
-        lexical_score = float(bm25_scores[idx]) if bm25_scores is not None and idx < len(bm25_scores) else 0.0
+        dense_score = float(hit.get("score", 0.0))
+        lexical_score = 0.0
+        if bm25_scores is not None and hit_id and hit_id in id_to_idx:
+            lexical_score = float(bm25_scores[id_to_idx[hit_id]])
 
         metadata_score = 0.0
         if should_mask_pii and pii_values:
-            matches = sum(1 for pii in pii_values if any(pii == span.get("original") for span in meta.get("masked_spans", [])))
+            matches = sum(
+                1
+                for pii in pii_values
+                if any(pii == span.get("original") for span in meta.get("masked_spans", []))
+            )
             metadata_score = matches / len(pii_values)
 
         combined_score = 0.55 * dense_score + 0.35 * lexical_score + 0.10 * metadata_score
         scored_results.append({"score": combined_score, "meta": meta})
 
     scored_results.sort(key=lambda x: x["score"], reverse=True)
-    return scored_results[:top_k]
+    
+    # Apply vault rehydration per role
+    results = scored_results[:top_k]
+    if HAS_VAULT and vault:
+        reload_vault_if_needed()
+        for result in results:
+            meta = result["meta"]
+            masked_text = meta.get("text", "")
+
+            if role == "admin":
+                rehydrated = vault.rehydrate(masked_text, reveal={"ALL"}, partial={})
+            elif role in {"finance", "manager"}:
+                rehydrated = vault.rehydrate(
+                    masked_text,
+                    reveal=set(),
+                    partial={
+                        "AADHAAR": "last4",
+                        "IN_PHONE": "last4",
+                        "US_SSN": "last4",
+                        "PHONE": "last4",
+                        "ACCOUNT": "last4",
+                        "EMAIL": "last4",
+                    },
+                )
+            else:
+                rehydrated = vault.rehydrate(masked_text, reveal=set(), partial={})
+
+            meta["text"] = rehydrated
+            print(f"Role: {role} | Rehydrated text sample: {rehydrated[:100]}...")
+
+    return results
 
 
 

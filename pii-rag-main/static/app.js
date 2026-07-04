@@ -107,12 +107,13 @@ queryBtn.addEventListener("click", async () => {
       retrievedOutput.innerHTML = "";
       payload.retrieved.slice(0, 5).forEach((item, index) => {
         const text = item.meta?.text ?? "(none)";
+        const safeText = escapeHtml(text).replace(/\n/g, " ").slice(0, 420);
         const card = document.createElement("div");
         card.className = "chunk-item";
         card.innerHTML = `
           <strong>Chunk ${index + 1}</strong>
           <div><em>Score:</em> ${item.score?.toFixed(3) ?? "N/A"}</div>
-          <div><em>Text:</em> ${text.replace(/\n/g, " ").slice(0, 420)}</div>
+          <div><em>Text:</em> ${safeText}</div>
         `;
         retrievedOutput.appendChild(card);
       });
@@ -126,5 +127,11 @@ queryBtn.addEventListener("click", async () => {
     queryBtn.disabled = false;
   }
 });
+
+function escapeHtml(text) {
+  const div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
+}
 
 renderFileList();
