@@ -19,6 +19,68 @@ body {
     margin: 0 auto;
 }
 
+.app-tabs {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.tab-button {
+    border: 1px solid rgba(102, 126, 234, 0.35);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+    font-weight: 700;
+    padding: 12px 22px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tab-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.tab-button.active {
+    background: #ffffff;
+    color: #2f3ab2;
+    border-color: #2f3ab2;
+}
+
+.app-view.hidden {
+    display: none;
+}
+
+.rag-controls {
+    display: grid;
+    gap: 18px;
+    margin-bottom: 24px;
+}
+
+.rag-inline {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.rag-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.control-block {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.info-box-content {
+    font-size: 0.95rem;
+    color: #333;
+}
+
 /* Header */
 .header {
     background: white;

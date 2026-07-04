@@ -9,30 +9,36 @@
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <h1>🔒 AAGCP-Vector PRO</h1>
-            <p>Real-time PII Detection & Cleaning in Production Vector Databases</p>
+        <div class="app-tabs">
+            <button type="button" class="tab-button active" data-target="maskingView">Masking Dashboard</button>
+            <button type="button" class="tab-button" data-target="ragView">RAG Retrieval</button>
         </div>
 
-        <!-- Control Panel -->
-        <div class="control-panel">
-            <button id="runBtn" class="btn btn-primary" onclick="runDemo()">▶ Run Live AAGCP Pipeline</button>
-            <span id="status" class="status-badge ready">Ready</span>
-            <span id="statusMsg" class="status-msg"></span>
-        </div>
+        <div id="maskingView" class="app-view active">
+            <!-- Header -->
+            <div class="header">
+                <h1>🔒 AAGCP-Vector PRO</h1>
+                <p>Real-time PII Detection & Cleaning in Production Vector Databases</p>
+            </div>
 
-        <!-- Loading Spinner -->
-        <div id="spinner" class="spinner hidden">
-            <div class="spin"></div>
-            <p>Running pipeline...</p>
-        </div>
+            <!-- Control Panel -->
+            <div class="control-panel">
+                <button id="runBtn" class="btn btn-primary" onclick="runDemo()">▶ Run Live AAGCP Pipeline</button>
+                <span id="status" class="status-badge ready">Ready</span>
+                <span id="statusMsg" class="status-msg"></span>
+            </div>
 
-        <!-- Results Container -->
-        <div id="results" class="results hidden">
-            
-            <!-- Detector Coverage -->
-            <section class="section">
+            <!-- Loading Spinner -->
+            <div id="spinner" class="spinner hidden">
+                <div class="spin"></div>
+                <p>Running pipeline...</p>
+            </div>
+
+            <!-- Results Container -->
+            <div id="results" class="results hidden">
+                
+                <!-- Detector Coverage -->
+                <section class="section">
                 <h2>📊 Detector Coverage</h2>
                 <div id="detectorInfo" class="info-grid">
                     <div class="info-box">
@@ -175,6 +181,77 @@
         <div id="errorBox" class="error-box hidden">
             <strong>Error:</strong> <span id="errorMsg"></span>
         </div>
+    </div>
+
+    <div id="ragView" class="app-view hidden">
+        <div class="header">
+            <h1>📄 RAG Retrieval UI</h1>
+            <p>Upload documents, index them, and ask questions with the RAG pipeline.</p>
+        </div>
+
+        <section class="section">
+            <div class="rag-controls">
+                <div class="control-block">
+                    <label class="field-label" for="ragFileInput">Upload document</label>
+                    <input id="ragFileInput" type="file" accept=".pdf,.txt,.docx,.xlsx" />
+                </div>
+                <div class="control-block rag-inline">
+                    <label class="toggle-row" for="ragMaskPiiCheckbox">
+                        <input id="ragMaskPiiCheckbox" type="checkbox" checked />
+                        <span>Mask PII before indexing</span>
+                    </label>
+                </div>
+                <div class="control-block rag-actions">
+                    <button id="ragUploadBtn" class="btn btn-primary">Upload & Index</button>
+                    <button id="ragLoadDemoBtn" class="btn btn-secondary">Load Demo Data</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="panel-card query-panel">
+                <label class="field-label" for="ragAuthToken">Auth token</label>
+                <input id="ragAuthToken" type="text" value="admin_token" />
+                <label class="field-label" for="ragQuestionInput">Question</label>
+                <textarea id="ragQuestionInput" rows="4" placeholder="Type a question or invoice number..."></textarea>
+                <button id="ragQueryBtn" class="btn btn-primary">Ask RAG</button>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="panel-card preview-panel">
+                <div class="panel-head">
+                    <span>Uploaded document</span>
+                    <span class="hint">Preview</span>
+                </div>
+                <div class="preview-container">
+                    <iframe id="ragPreviewFrame" class="preview-frame" hidden></iframe>
+                    <p id="ragPreviewMessage" class="preview-message">Upload a supported file to preview it.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="panel-card results-panel">
+                <div class="result-section">
+                    <h3>Answer</h3>
+                    <pre id="ragAnswerOutput" class="output-box">No query yet.</pre>
+                </div>
+                <div class="result-section">
+                    <h3>Retrieved chunks</h3>
+                    <div id="ragRetrievedOutput" class="retrieved-list">No results yet.</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="panel-card">
+                <h3>RAG Index Status</h3>
+                <div id="ragIndexStatus" class="info-box">
+                    <div class="info-box-content">Loading...</div>
+                </div>
+            </div>
+        </section>
     </div>
 
     <script src="/static/script.js"></script>

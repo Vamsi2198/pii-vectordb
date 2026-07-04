@@ -2,6 +2,21 @@
 
 let piiChart = null;
 
+function setupTabNavigation() {
+  const tabButtons = document.querySelectorAll(".tab-button");
+  tabButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      document.querySelectorAll(".tab-button").forEach((btn) => btn.classList.remove("active"));
+      document.querySelectorAll(".app-view").forEach((view) => view.classList.add("hidden"));
+
+      button.classList.add("active");
+      const target = button.dataset.target;
+      document.getElementById(target).classList.remove("hidden");
+      document.getElementById(target).classList.add("active");
+    });
+  });
+}
+
 async function runDemo() {
   const runBtn = document.getElementById("runBtn");
   const spinner = document.getElementById("spinner");
@@ -10,11 +25,8 @@ async function runDemo() {
   const statusBadge = document.getElementById("status");
   const statusMsg = document.getElementById("statusMsg");
 
-  // Reset UI
   errorBox.classList.add("hidden");
   results.classList.add("hidden");
-
-  // Show spinner
   spinner.classList.remove("hidden");
   runBtn.disabled = true;
   statusBadge.textContent = "Running";
@@ -23,13 +35,11 @@ async function runDemo() {
 
   try {
     const response = await fetch("/api/run-demo", { method: "POST" });
-
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
     }
 
     const result = await response.json();
-
     if (result.status === "success") {
       populateResults(result.data);
       results.classList.remove("hidden");
@@ -55,13 +65,11 @@ async function runDemo() {
 }
 
 function populateResults(data) {
-  // Detector Coverage
   document.getElementById("regexCount").textContent =
     data.detector_coverage.regex_entity_count;
   document.getElementById("nerBackend").textContent =
     data.detector_coverage.ner_backend || "Not available";
 
-  // Before Cleaning
   document.getElementById("beforeVectors").textContent =
     data.dirty_scan.total_vectors;
   document.getElementById("beforeWithPII").textContent =
@@ -69,7 +77,6 @@ function populateResults(data) {
   document.getElementById("beforePIICount").textContent =
     data.dirty_scan.total_pii_instances;
 
-  // After Cleaning
   document.getElementById("afterVectors").textContent =
     data.clean_scan.total_vectors;
   document.getElementById("afterWithPII").textContent =
@@ -77,7 +84,6 @@ function populateResults(data) {
   document.getElementById("afterPIICount").textContent =
     data.clean_scan.total_pii_instances;
 
-  // Migration Stats
   document.getElementById("reembedded").textContent =
     data.migration_stats.reembedded;
   document.getElementById("quarantined").textContent =
@@ -85,12 +91,10 @@ function populateResults(data) {
   document.getElementById("tokensMinted").textContent =
     data.migration_stats.tokens_minted;
 
-  // Queries
   populateQueries("queriesBefore", data.queries_before);
   populateQueries("queriesAfterAnalyst", data.queries_after_analyst);
   populateQueries("queriesAfterCompliance", data.queries_after_compliance);
 
-  // Chart
   updatePIIChart(data.dirty_scan.by_type);
 }
 
@@ -112,6 +116,7 @@ function populateQueries(elementId, queries) {
 
 function updatePIIChart(byType) {
   const ctx = document.getElementById("piiChart");
+  if (!ctx) return;
 
   if (piiChart) {
     piiChart.destroy();
@@ -119,8 +124,6 @@ function updatePIIChart(byType) {
 
   const labels = Object.keys(byType);
   const data = Object.values(byType);
-
-  // Create color palette
   const colors = generateColors(labels.length);
 
   piiChart = new Chart(ctx, {
@@ -171,16 +174,142 @@ function generateColors(count) {
     "#ff9a56",
     "#5f27cd",
   ];
-
-  const result = [];
-  for (let i = 0; i < count; i++) {
-    result.push(colors[i % colors.length]);
-  }
-  return result;
+  return Array.from({ length: count }, (_, idx) => colors[idx % colors.length]);
 }
 
-// Auto-run on page load (optional - remove if you want manual trigger)
-document.addEventListener("DOMContentLoaded", async () => {
+async function queryRag() {
+  const authToken = document.getElementById("ragAuthToken").value.trim();
+  const question = document.getElementById("ragQuestionInput").value.trim();
+  const maskPii = document.getElementById("ragMaskPiiCheckbox").checked;
+  const answerOutput = document.getElementById("ragAnswerOutput");
+  const retrievedOutput = document.getElementById("ragRetrievedOutput");
+
+  if (!question) {
+    alert("Please enter a question.");
+    return;
+  }
+
+  answerOutput.textContent = "Thinking...";
+  retrievedOutput.innerHTML = "";
+
+  try {
+    const params = new URLSearchParams({
+      question,
+      authorization: authToken,
+      mask_pii: String(maskPii),
+    });
+    const response = await fetch(`/rag/query?${params.toString()}`);
+    if (!response.ok) {
+      const body = await response.text();
+      throw new Error(`Query failed: ${body}`);
+    }
+    const payload = await response.json();
+    answerOutput.textContent = payload.answer || "No answer returned.";
+
+    if (Array.isArray(payload.retrieved) && payload.retrieved.length) {
+      retrievedOutput.innerHTML = "";
+      payload.retrieved.slice(0, 5).forEach((item, index) => {
+        const text = item.meta?.text ?? "(none)";
+        const safeText = escapeHtml(text).replace(/\n/g, " ").slice(0, 420);
+        const card = document.createElement("div");
+        card.className = "chunk-item";
+        card.innerHTML = `
+          <strong>Chunk ${index + 1}</strong>
+          <div><em>Score:</em> ${item.score?.toFixed(3) ?? "N/A"}</div>
+          <div><em>Text:</em> ${safeText}</div>
+        `;
+        retrievedOutput.appendChild(card);
+      });
+    } else {
+      retrievedOutput.textContent = "No chunks returned.";
+    }
+  } catch (error) {
+    answerOutput.textContent = `Query error: ${error.message}`;
+    retrievedOutput.textContent = "";
+  }
+}
+
+async function uploadRagDocument() {
+  const fileInput = document.getElementById("ragFileInput");
+  const maskPii = document.getElementById("ragMaskPiiCheckbox").checked;
+  const previewFrame = document.getElementById("ragPreviewFrame");
+  const previewMessage = document.getElementById("ragPreviewMessage");
+
+  if (!fileInput.files.length) {
+    alert("Please choose a file to upload.");
+    return;
+  }
+
+  const file = fileInput.files[0];
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("mask_pii", String(maskPii));
+
+  try {
+    const response = await fetch("/rag/upload", {
+      method: "POST",
+      body: formData,
+    });
+    if (!response.ok) {
+      const body = await response.text();
+      throw new Error(`Upload failed: ${body}`);
+    }
+    const payload = await response.json();
+    if (payload.preview_url) {
+      previewFrame.src = payload.preview_url;
+      previewFrame.hidden = false;
+      previewMessage.textContent = "Preview of uploaded document.";
+    }
+  } catch (error) {
+    previewFrame.hidden = true;
+    previewMessage.textContent = `Upload error: ${error.message}`;
+  }
+}
+
+async function loadRagDemoData() {
+  try {
+    const response = await fetch("/rag/api/load-demo-data", { method: "POST" });
+    if (!response.ok) {
+      throw new Error(`Demo load failed: ${response.status}`);
+    }
+    const payload = await response.json();
+    alert(`Loaded ${payload.total_chunks} demo chunks.`);
+    refreshRagIndexStatus();
+  } catch (error) {
+    alert(`Load demo data error: ${error.message}`);
+  }
+}
+
+async function refreshRagIndexStatus() {
+  const statusBox = document.getElementById("ragIndexStatus");
+  if (!statusBox) return;
+  statusBox.textContent = "Loading...";
+  try {
+    const response = await fetch("/rag/api/index-status");
+    if (!response.ok) throw new Error(response.statusText);
+    const payload = await response.json();
+    statusBox.innerHTML = `Status: <strong>${payload.status}</strong><br>Total chunks: ${payload.total_chunks}`;
+  } catch (error) {
+    statusBox.textContent = `Unable to load index status: ${error.message}`;
+  }
+}
+
+function escapeHtml(text) {
+  const div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function initialize() {
+  setupTabNavigation();
+  document.getElementById("ragUploadBtn").addEventListener("click", uploadRagDocument);
+  document.getElementById("ragQueryBtn").addEventListener("click", queryRag);
+  document.getElementById("ragLoadDemoBtn").addEventListener("click", loadRagDemoData);
+  refreshRagIndexStatus();
+  initMaskingStatus();
+}
+
+async function initMaskingStatus() {
   try {
     const res = await fetch("/api/status");
     const status = await res.json();
@@ -196,4 +325,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   } catch (e) {
     console.log('Dashboard loaded. Click "Run Demo Pipeline" to execute.');
   }
-});
+}
+
+document.addEventListener("DOMContentLoaded", initialize);

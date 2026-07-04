@@ -5,6 +5,7 @@ from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 import logging
 import traceback
+import importlib.util
 import sys, os
 from pathlib import Path
 from typing import Optional
@@ -29,6 +30,19 @@ logger = logging.getLogger("aagcp_app")
 
 Path("static").mkdir(exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Mount the RAG app from the pii-rag-main folder at /rag
+rag_root = Path(__file__).resolve().parent / "pii-rag-main"
+rag_main_file = rag_root / "main.py"
+if rag_main_file.exists():
+    sys.path.insert(0, str(rag_root))
+    spec = importlib.util.spec_from_file_location("rag_main_module", str(rag_main_file))
+    rag_main_module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(rag_main_module)
+    app.mount("/rag", rag_main_module.app)
+    logger.info("Mounted RAG app at /rag")
+else:
+    logger.warning("Could not mount RAG app because %s does not exist", rag_main_file)
 
 # Backend: Pinecone when PINECONE_API_KEY is set, otherwise the app stays offline
 backend_mode = "disabled"
