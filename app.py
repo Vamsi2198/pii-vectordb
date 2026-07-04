@@ -168,7 +168,6 @@ async def run_demo():
         )
         vault = PseudonymVault(secret=secret)
         ret_dirty = GovernedRetriever(store, embedder, vault, detector=None)
-        # rag -pii - control plane
 
         # Retrieve and log hit shapes for debugging (helps catch missing fields)
         hits_before = ret_dirty.query("diabetes patients", ANALYST_REVEAL, ANALYST_PARTIAL, k=5)
