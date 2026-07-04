@@ -127,12 +127,14 @@ class PineconeConnector(VectorStoreConnector):
 
     def iter_all(self, batch: int = 500):
         for page in self._ix.list(namespace=self._ns):
+            ids = [item.id for item in getattr(page, 'vectors', [])]
+            if not ids:
+                continue
             recs = []
-            for vid, v in self._ix.fetch(ids=list(page), namespace=self._ns).vectors.items():
+            for vid, v in self._ix.fetch(ids=ids, namespace=self._ns).vectors.items():
                 md = dict(v.get("metadata") or {})
-                # Fallback: use "text" if "source_text" is missing (for PDFs ingested without source_text)
-                src_text = md.get("source_text") or md.get("text")
-                logger.info(f"PINECONE ITER_ALL | id={vid} | has_source_text={bool(md.get('source_text'))} | has_text={bool(md.get('text'))} | src_len={len(src_text or '')}")
+                src_text = md.get("source_text") or md.get("text") or ""
+                logger.info(f"PINECONE ITER_ALL | id={vid} | has_source_text={bool(md.get('source_text'))} | has_text={bool(md.get('text'))} | src_len={len(src_text)}")
                 recs.append(VectorRecord(vid, None, src_text, md))
             if recs:
                 yield recs
@@ -141,7 +143,9 @@ class PineconeConnector(VectorStoreConnector):
         out = []
         for vid, v in self._ix.fetch(ids=ids, namespace=self._ns).vectors.items():
             md = dict(v.get("metadata") or {})
-            out.append(VectorRecord(vid, None, md.get("source_text"), md))
+            src_text = md.get("source_text") or md.get("text")
+            logger.info(f"PINECONE FETCH | id={vid} | has_source_text={bool(md.get('source_text'))} | has_text={bool(md.get('text'))} | src_len={len(src_text or '')}")
+            out.append(VectorRecord(vid, None, src_text, md))
         return out
 
     def upsert(self, records):
@@ -157,13 +161,20 @@ class PineconeConnector(VectorStoreConnector):
     def query(self, vector, k=5, where=None):
         res = self._ix.query(namespace=self._ns, vector=list(map(float, vector)),
                              top_k=k, include_metadata=True, filter=where or None)
-        results = [{"id": m["id"], "score": m["score"],
-                 "source_text": (m.get("metadata") or {}).get("source_text") or (m.get("metadata") or {}).get("text"),
-                 "text": (m.get("metadata") or {}).get("text"),
-                 "metadata": m.get("metadata") or {}} for m in res["matches"]]
+        results = []
+        for m in res["matches"]:
+            md = m.get("metadata") or {}
+            full_text = md.get("source_text") or md.get("text") or ""
+            results.append({
+                "id": m["id"],
+                "score": m["score"],
+                "source_text": full_text,
+                "text": full_text,
+                "metadata": md,
+            })
         # Log what we're retrieving
         for r in results[:2]:  # Log first 2 results
-            txt_preview = (r.get("source_text") or "")[:100]
+            txt_preview = (r.get("source_text") or "")[:180]
             logger.info(f"PINECONE QUERY | id={r['id']} | score={r['score']:.4f} | text={txt_preview}")
         return results
 

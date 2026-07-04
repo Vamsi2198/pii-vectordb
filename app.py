@@ -177,7 +177,7 @@ async def run_demo():
         for h in hits_before:
             # Extract text from rehydrated field (role-based masking already applied)
             txt = h.get("text") or h.get("source_text") or ""
-            queries_before.append(txt[:200])
+            queries_before.append(txt)
         logger.info("Queries before cleaning computed: %s results", len(queries_before))
 
         migrator = Migrator(detector, vault, embedder)
@@ -197,7 +197,7 @@ async def run_demo():
         for h in hits_after_analyst:
             # Extract text with analyst-role masking applied by retriever
             txt = h.get("text") or h.get("source_text") or ""
-            queries_after_analyst.append(txt[:200])
+            queries_after_analyst.append(txt)
         logger.info("Queries after analyst computed: %s results", len(queries_after_analyst))
 
         hits_after_compliance = ret_clean.query("diabetes patients", {"ALL"}, {}, k=5)
@@ -207,7 +207,7 @@ async def run_demo():
         for h in hits_after_compliance:
             # Extract text with compliance-role full reveal applied by retriever
             txt = h.get("text") or h.get("source_text") or ""
-            queries_after_compliance.append(txt[:120])
+            queries_after_compliance.append(txt)
         logger.info("Queries after compliance computed: %s results", len(queries_after_compliance))
 
         demo_state["data"] = {

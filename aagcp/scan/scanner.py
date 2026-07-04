@@ -69,6 +69,8 @@ class Scanner:
             for rec in chunk:
                 rep.scanned_vectors += 1
                 text = rec.source_text or ""
+                if not text and rec.metadata:
+                    text = rec.metadata.get("source_text") or rec.metadata.get("text") or ""
                 findings = self.detector.scan(text) if text else []
                 if findings:
                     rep.vectors_with_pii += 1
@@ -76,16 +78,12 @@ class Scanner:
                     for f in findings:
                         type_ctr[f.entity_type] += 1
                         juris_ctr[f.jurisdiction or "GLOBAL"] += 1
-                    if rec.source_text:
-                        rep.cleanable += 1
-                    else:
-                        rep.quarantine_only += 1
+                    rep.cleanable += 1
                     rep.exposures.append(VectorExposure(
-                        rec.id, findings, bool(rec.source_text),
+                        rec.id, findings, bool(text),
                         self.detector.risk_score(findings)))
-                elif rec.source_text is None:
-                    # PII may exist but we can't see it (no source) — flag risk
-                    pass
+                elif not text:
+                    rep.quarantine_only += 1
             if progress:
                 progress(rep.scanned_vectors, rep.total_vectors)
 

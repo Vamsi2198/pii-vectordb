@@ -72,8 +72,11 @@ class Migrator:
             if not rec:
                 continue
             rec = rec[0]
-            if rec.source_text:
-                masked, n = self._mask(rec.source_text)
+            text = rec.source_text or ""
+            if not text and rec.metadata:
+                text = rec.metadata.get("source_text") or rec.metadata.get("text") or ""
+            if text:
+                masked, n = self._mask(text)
                 vec = self.embedder.embed(masked)
                 to_upsert.append(VectorRecord(
                     rec.id, vec, masked,
