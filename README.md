@@ -89,4 +89,42 @@ you know before you start.
 Detection, embedding, and storage are all swappable adapters. The governance
 logic never changes when you swap a backend — that is what makes it
 plug-and-play.
+
+## Streamlit deployment
+
+This repository includes a Streamlit wrapper at `streamlit_app.py` and a
+separate `requirements-streamlit.txt` file for hosted deployment.
+
+### Run locally
+
+1. Create a virtual environment and install dependencies:
+
+    python -m venv .venv
+    .venv\Scripts\activate
+    pip install -r requirements-streamlit.txt
+
+2. Add your environment variables in a `.env` file:
+
+    OPENAI_API_KEY=your_openai_key
+    PINECONE_API_KEY=your_pinecone_key
+    VAULT_SECRET=your_vault_secret
+
+3. Start Streamlit:
+
+    streamlit run streamlit_app.py
+
+### Deploy to Streamlit Community Cloud
+
+1. Push your repository to GitHub.
+2. On Streamlit Cloud, create a new app from this GitHub repository.
+3. Set the app entrypoint to `streamlit_app.py`.
+4. Set environment variables in the Streamlit Cloud app settings:
+   - `OPENAI_API_KEY`
+   - `PINECONE_API_KEY`
+   - `VAULT_SECRET`
+5. Use `requirements-streamlit.txt` as the dependency file.
+
+> Note: A local Streamlit session only runs while your laptop is on. To share a
+> permanent URL and close your laptop, deploy to a hosted service such as
+> Streamlit Community Cloud.
 "# pii-vectordb" 

@@ -15,6 +15,15 @@ presidio-anonymizer
 # ── Real embeddings (recommended for production retrieval) ──
 sentence-transformers
 
+# ── Streamlit deployment / demo UI support ──
+streamlit
+python-dotenv
+pdfplumber
+python-docx
+pandas
+openpyxl
+openai
+
 # ── Vector store connectors (install ONLY the one you use) ──
 # pinecone (the modern package name)
 pinecone
