@@ -1,6 +1,7 @@
 streamlit
 python-dotenv
 sentence-transformers
+rank_bm25
 numpy
 pandas
 openpyxl
