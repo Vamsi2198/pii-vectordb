@@ -133,14 +133,8 @@ class PineconeConnector(VectorStoreConnector):
             recs = []
             for vid, v in self._ix.fetch(ids=ids, namespace=self._ns).vectors.items():
                 md = dict(v.get("metadata") or {})
-<<<<<<< HEAD
                 src_text = md.get("source_text") or md.get("text") or ""
                 logger.info(f"PINECONE ITER_ALL | id={vid} | has_source_text={bool(md.get('source_text'))} | has_text={bool(md.get('text'))} | src_len={len(src_text)}")
-=======
-                # Fallback: use "text" if "source_text" is missing (for PDFs ingested without source_text)
-                src_text = md.get("source_text") or md.get("text")
-                logger.info(f"PINECONE ITER_ALL | id={vid} | has_source_text={bool(md.get('source_text'))} | has_text={bool(md.get('text'))} | src_len={len(src_text or '')}")
->>>>>>> 86d7e50 (chanegs)
                 recs.append(VectorRecord(vid, None, src_text, md))
             if recs:
                 yield recs
@@ -167,7 +161,6 @@ class PineconeConnector(VectorStoreConnector):
     def query(self, vector, k=5, where=None):
         res = self._ix.query(namespace=self._ns, vector=list(map(float, vector)),
                              top_k=k, include_metadata=True, filter=where or None)
-<<<<<<< HEAD
         results = []
         for m in res["matches"]:
             md = m.get("metadata") or {}
@@ -182,15 +175,6 @@ class PineconeConnector(VectorStoreConnector):
         # Log what we're retrieving
         for r in results[:2]:  # Log first 2 results
             txt_preview = (r.get("source_text") or "")[:180]
-=======
-        results = [{"id": m["id"], "score": m["score"],
-                 "source_text": (m.get("metadata") or {}).get("source_text") or (m.get("metadata") or {}).get("text"),
-                 "text": (m.get("metadata") or {}).get("text"),
-                 "metadata": m.get("metadata") or {}} for m in res["matches"]]
-        # Log what we're retrieving
-        for r in results[:2]:  # Log first 2 results
-            txt_preview = (r.get("source_text") or "")[:100]
->>>>>>> 86d7e50 (chanegs)
             logger.info(f"PINECONE QUERY | id={r['id']} | score={r['score']:.4f} | text={txt_preview}")
         return results
 
