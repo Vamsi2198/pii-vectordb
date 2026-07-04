@@ -6,10 +6,27 @@ from pathlib import Path
 import streamlit as st
 from dotenv import load_dotenv
 
-load_dotenv()
-
 ROOT_DIR = Path(__file__).resolve().parent
 RAG_ROOT = ROOT_DIR / "pii-rag-main"
+
+# Load .env from the repo root if it exists
+load_dotenv(dotenv_path=ROOT_DIR / ".env")
+# Also load .env from the pii-rag-main subfolder if present
+load_dotenv(dotenv_path=RAG_ROOT / ".env", override=False)
+
+# Streamlit Cloud secrets are often set in st.secrets rather than in os.environ.
+# Mirror them to environment variables so downstream imports that use os.getenv() work.
+for secret_key in (
+    "PINECONE_API_KEY",
+    "pinecode_key",
+    "OPENAI_API_KEY",
+    "VAULT_SECRET",
+    "PINECONE_INDEX",
+    "PINECONE_ENVIRONMENT",
+    "VAULT_STORE_PATH",
+):
+    if not os.getenv(secret_key) and secret_key in st.secrets:
+        os.environ[secret_key] = str(st.secrets[secret_key])
 
 # Allow importing the existing RAG modules from pii-rag-main
 sys.path.insert(0, str(RAG_ROOT))
