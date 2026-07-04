@@ -24,7 +24,7 @@ python -m spacy download en_core_web_lg
 
 ### 2. Set Environment
 
-Your `.env` already has `PINECONE_API_KEY`. The app will auto-detect and use the `hybrid-search-langchain-pinecone` index (384D, matches your embeddings).
+Your `.env` already has `PINECONE_API_KEY`. The app will auto-detect and use the `ragpii-384` index (384D, matches your embeddings).
 
 ```bash
 cd "C:\Users\HP\OneDrive\Documents\dinesh sir\aagcp_pro"
@@ -41,7 +41,7 @@ python app_aagcp_pinecone.py
 You should see:
 
 ```
-[INIT] Connecting to Pinecone index: hybrid-search-langchain-pinecone
+[INIT] Connecting to Pinecone index: ragpii-384
 [INIT] Pinecone connector ready. Current vector count: N
 [INIT] Loading SentenceTransformer embedder (all-MiniLM-L6-v2)...
 [INIT] Embedder dimension: 384
@@ -123,7 +123,7 @@ Re-hydrate specific results with `PseudonymVault.rectify()` if authorized.
 │  └─ all-MiniLM-L6-v2 model (384D vectors)
 │
 ├─ aagcp/store/connectors.py (PineconeConnector)
-│  └─ Pinecone index (hybrid-search-langchain-pinecone)
+│  └─ Pinecone index (ragpii-384)
 │
 ├─ aagcp/scan/scanner.py (Scanner)
 │  └─ Full-index scanning for PII
@@ -181,7 +181,7 @@ curl -F "file=@sample.txt" -F "doc_id=my_doc" http://localhost:8001/ingest
 | Variable           | Purpose                  | Example                                      |
 | ------------------ | ------------------------ | -------------------------------------------- |
 | `PINECONE_API_KEY` | Pinecone auth            | (in .env)                                    |
-| `PINECONE_INDEX`   | Index name to use        | `hybrid-search-langchain-pinecone` (default) |
+| `PINECONE_INDEX`   | Index name to use        | `ragpii-384` (default) |
 | `VAULT_SECRET`     | Pseudonym encryption key | Change in production!                        |
 
 ---

@@ -44,7 +44,7 @@ try:
     pc = Pinecone(api_key=api_key)
     
     # Use the 384D index (hybrid-search-langchain-pinecone matches our embedding dim)
-    index_name = os.getenv("PINECONE_INDEX", "hybrid-search-langchain-pinecone")
+    index_name = os.getenv("PINECONE_INDEX", "ragpii-384")
     pinecone_namespace = os.getenv("PINECONE_NAMESPACE", "")
     print(f"[INIT] Connecting to Pinecone index: {index_name}, namespace={pinecone_namespace!r}")
     
