@@ -175,9 +175,9 @@ async def run_demo():
                     len(hits_before), [list(dict(h).keys()) for h in hits_before[:5]])
         queries_before = []
         for h in hits_before:
-            # Normalize potential None values before slicing
-            src = h.get("source_text") or h.get("text") or ""
-            queries_before.append(src[:120])
+            # Extract text from rehydrated field (role-based masking already applied)
+            txt = h.get("text") or h.get("source_text") or ""
+            queries_before.append(txt[:200])
         logger.info("Queries before cleaning computed: %s results", len(queries_before))
 
         migrator = Migrator(detector, vault, embedder)
@@ -195,7 +195,9 @@ async def run_demo():
                     len(hits_after_analyst), [list(dict(h).keys()) for h in hits_after_analyst[:5]])
         queries_after_analyst = []
         for h in hits_after_analyst:
-            queries_after_analyst.append((h.get("text") or h.get("source_text") or "")[:120])
+            # Extract text with analyst-role masking applied by retriever
+            txt = h.get("text") or h.get("source_text") or ""
+            queries_after_analyst.append(txt[:200])
         logger.info("Queries after analyst computed: %s results", len(queries_after_analyst))
 
         hits_after_compliance = ret_clean.query("diabetes patients", {"ALL"}, {}, k=5)
@@ -203,7 +205,9 @@ async def run_demo():
                     len(hits_after_compliance), [list(dict(h).keys()) for h in hits_after_compliance[:5]])
         queries_after_compliance = []
         for h in hits_after_compliance:
-            queries_after_compliance.append((h.get("text") or h.get("source_text") or "")[:120])
+            # Extract text with compliance-role full reveal applied by retriever
+            txt = h.get("text") or h.get("source_text") or ""
+            queries_after_compliance.append(txt[:120])
         logger.info("Queries after compliance computed: %s results", len(queries_after_compliance))
 
         demo_state["data"] = {

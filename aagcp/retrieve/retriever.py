@@ -58,6 +58,6 @@ class GovernedRetriever:
             hits = sorted(hits, key=lambda x: -x["score"])[:k]
 
         for h in hits:
-            h["text"] = self.vault.rehydrate(h.get("source_text") or "",
+            h["text"] = self.vault.rehydrate(h.get("source_text") or h.get("text") or "",
                                              role_reveal, role_partial)
         return hits

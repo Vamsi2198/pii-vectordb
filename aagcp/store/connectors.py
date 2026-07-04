@@ -26,6 +26,9 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Dict, Iterator, List, Optional
 import numpy as np
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -127,7 +130,10 @@ class PineconeConnector(VectorStoreConnector):
             recs = []
             for vid, v in self._ix.fetch(ids=list(page), namespace=self._ns).vectors.items():
                 md = dict(v.get("metadata") or {})
-                recs.append(VectorRecord(vid, None, md.get("source_text"), md))
+                # Fallback: use "text" if "source_text" is missing (for PDFs ingested without source_text)
+                src_text = md.get("source_text") or md.get("text")
+                logger.info(f"PINECONE ITER_ALL | id={vid} | has_source_text={bool(md.get('source_text'))} | has_text={bool(md.get('text'))} | src_len={len(src_text or '')}")
+                recs.append(VectorRecord(vid, None, src_text, md))
             if recs:
                 yield recs
 
@@ -141,15 +147,25 @@ class PineconeConnector(VectorStoreConnector):
     def upsert(self, records):
         self._ix.upsert(namespace=self._ns, vectors=[
             {"id": r.id, "values": list(map(float, r.vector)),
-             "metadata": {**r.metadata, "source_text": r.source_text or ""}}
+             "metadata": {**r.metadata, "source_text": r.source_text or "", "text": r.source_text or ""}}
             for r in records])
+        # Log what we're upserting (for masking verification)
+        for r in records:
+            txt_preview = (r.source_text or "")[:100]
+            logger.info(f"PINECONE UPSERT | id={r.id} | text={txt_preview}")
 
     def query(self, vector, k=5, where=None):
         res = self._ix.query(namespace=self._ns, vector=list(map(float, vector)),
                              top_k=k, include_metadata=True, filter=where or None)
-        return [{"id": m["id"], "score": m["score"],
-                 "source_text": (m.get("metadata") or {}).get("source_text"),
+        results = [{"id": m["id"], "score": m["score"],
+                 "source_text": (m.get("metadata") or {}).get("source_text") or (m.get("metadata") or {}).get("text"),
+                 "text": (m.get("metadata") or {}).get("text"),
                  "metadata": m.get("metadata") or {}} for m in res["matches"]]
+        # Log what we're retrieving
+        for r in results[:2]:  # Log first 2 results
+            txt_preview = (r.get("source_text") or "")[:100]
+            logger.info(f"PINECONE QUERY | id={r['id']} | score={r['score']:.4f} | text={txt_preview}")
+        return results
 
     def delete(self, ids):
         self._ix.delete(ids=ids, namespace=self._ns)
