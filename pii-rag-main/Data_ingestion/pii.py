@@ -98,7 +98,14 @@ def make_sensitive_text(text: str, mask_pii: bool = True) -> Tuple[str, List[Dic
             
             # Use vault for deterministic tokens if available
             if HAS_VAULT and vault:
-                finding = Finding(label, span_text, start=match.start(), end=match.end())
+                finding = Finding(
+                    label,
+                    span_text,
+                    start=match.start(),
+                    end=match.end(),
+                    confidence=1.0,
+                    source="regex",
+                )
                 token = vault.token_for(finding)
             else:
                 # Fallback to sequential token if vault unavailable
