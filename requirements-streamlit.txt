@@ -1,6 +1,8 @@
 streamlit
 python-dotenv
 sentence-transformers
+torch
+torchvision
 rank_bm25
 numpy
 pandas

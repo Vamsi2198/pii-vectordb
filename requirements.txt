@@ -19,6 +19,8 @@ rank_bm25
 # ── Streamlit deployment / demo UI support ──
 streamlit
 python-dotenv
+torch
+torchvision
 pdfplumber
 python-docx
 pandas
