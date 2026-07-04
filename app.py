@@ -3,9 +3,11 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
-import sys, random, os
+import logging
+import traceback
+import sys, os
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional
 
 sys.path.insert(0, ".")
 
@@ -14,12 +16,7 @@ load_dotenv()
 
 from aagcp.detect.detector import PIIDetector
 from aagcp.embed.embedders import HashingEmbedder, SentenceTransformerEmbedder
-from aagcp.store.connectors import (
-    InMemoryConnector,
-    PineconeConnector,
-    VectorRecord,
-    VectorStoreConnector,
-)
+from aagcp.store.connectors import PineconeConnector, VectorRecord, VectorStoreConnector
 from aagcp.vault import PseudonymVault
 from aagcp.scan.scanner import Scanner
 from aagcp.migrate.migrator import Migrator
@@ -27,11 +24,14 @@ from aagcp.retrieve.retriever import GovernedRetriever
 
 app = FastAPI()
 
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+logger = logging.getLogger("aagcp_app")
+
 Path("static").mkdir(exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Backend: Pinecone when PINECONE_API_KEY is set, else in-memory demo
-backend_mode = "demo"
+# Backend: Pinecone when PINECONE_API_KEY is set, otherwise the app stays offline
+backend_mode = "disabled"
 store: Optional[VectorStoreConnector] = None
 embedder = None
 index_name: Optional[str] = None
@@ -41,7 +41,7 @@ demo_state = {
     "status": "ready",
     "data": None,
     "error": None,
-    "backend": "demo",
+    "backend": "disabled",
 }
 
 
@@ -59,78 +59,67 @@ def _init_pinecone() -> bool:
         print("[INIT] pinecone package not installed — using demo mode")
         return False
 
-    index_name = os.getenv("PINECONE_INDEX", "hybrid-search-langchain-pinecone")
+    index_name = os.getenv("PINECONE_INDEX", "ragpii-384")
     pinecone_namespace = os.getenv("PINECONE_NAMESPACE", "")
 
     try:
         pc = Pinecone(api_key=api_key)
         pinecone_index = pc.index(index_name)
         store = PineconeConnector(pinecone_index, namespace=pinecone_namespace)
-        embedder = SentenceTransformerEmbedder("all-MiniLM-L6-v2")
+        try:
+            embedder = SentenceTransformerEmbedder("all-MiniLM-L6-v2")
+            logger.info("Using SentenceTransformer embedder")
+        except Exception as embed_err:
+            embedder = HashingEmbedder(384)
+            logger.warning("SentenceTransformer unavailable; using hashing embedder: %s", embed_err)
         backend_mode = "pinecone"
-        print(
-            f"[INIT] Pinecone connected: index={index_name!r}, "
-            f"namespace={pinecone_namespace!r}, vectors={store.count()}"
+        logger.info(
+            "Pinecone connected: index=%r namespace=%r vectors=%s",
+            index_name, pinecone_namespace, store.count()
         )
         return True
     except Exception as e:
-        print(f"[INIT] Pinecone connection failed: {e} — using demo mode")
+        logger.exception("Pinecone connection failed — switching backend")
         store = None
         embedder = None
         backend_mode = "demo"
         return False
 
 
-def generate_demo_data() -> Tuple[HashingEmbedder, InMemoryConnector]:
-    """Generate 137 fake patient records with PII (fallback when no Pinecone)."""
-    FIRST = ["Ramesh","Priya","Arjun","Kavya","Vikram","Ananya","Meera","Sanjay",
-             "Divya","Rahul","John","Emma","Liam","Olivia","Noah","Sophia"]
-    LAST  = ["Iyer","Sharma","Mehta","Nair","Reddy","Das","Kumar","Smith",
-             "Johnson","Williams","Brown","Garcia"]
-    COND  = ["Type 2 Diabetes","hypertension","atrial fibrillation","migraine with aura",
-             "early nephropathy","peripheral neuropathy","asthma","hyperlipidemia"]
-
-    def aadhaar():
-        return f"{random.randint(2000,9999)} {random.randint(1000,9999)} {random.randint(1000,9999)}"
-
-    def pan():
-        import string
-        return "".join(random.choice(string.ascii_uppercase) for _ in range(5)) + \
-               f"{random.randint(1000,9999)}" + random.choice(string.ascii_uppercase)
-
-    emb = HashingEmbedder(384)
-    prod = InMemoryConnector()
-
-    N = 137
-    random.seed(7)
-    for i in range(N):
-        fn, ln = random.choice(FIRST), random.choice(LAST)
-        cond = random.choice(COND)
-        if i % 3 == 0:
-            text = (f"Patient {fn} {ln}, Aadhaar {aadhaar()}, phone +91 9{random.randint(100000000,999999999)}, "
-                    f"MRN-{random.randint(100000,999999)}, diagnosed with {cond}.")
-        elif i % 3 == 1:
-            text = (f"Patient {fn} {ln}, PAN {pan()}, email {fn.lower()}.{ln.lower()}@example.com, "
-                    f"MRN-{random.randint(100000,999999)}, {cond}.")
-        else:
-            text = (f"Member {fn} {ln}, SSN {random.randint(100,899)}-{random.randint(10,99)}-{random.randint(1000,9999)}, "
-                    f"card 4{random.randint(100000000000000,999999999999999)}, {cond}.")
-        prod.upsert([VectorRecord(f"vec_{i:04d}", emb.embed(text), text, {"ingested":"legacy"})])
-
-    return emb, prod
+def _chunk_text(text: str, chunk_size: int = 500) -> list[str]:
+    """Split a text blob into manageable chunks for embedding and ingestion."""
+    if not text:
+        return []
+    return [text[i : i + chunk_size] for i in range(0, len(text), chunk_size)]
 
 
-def _get_store_and_embedder() -> Tuple[VectorStoreConnector, object]:
-    """Return the active store and embedder (Pinecone or freshly built demo index)."""
-    if backend_mode == "pinecone" and store is not None and embedder is not None:
-        return store, embedder
-    return generate_demo_data()
+def _ingest_text_to_store(text: str, doc_id: str = "live-doc") -> dict:
+    """Embed a text payload and upsert it into the live Pinecone index."""
+    if backend_mode != "pinecone" or store is None or embedder is None:
+        raise HTTPException(status_code=400, detail="Pinecone is not configured")
+
+    chunks = _chunk_text(text)
+    if not chunks:
+        raise HTTPException(status_code=400, detail="Input text is empty")
+
+    vectors = embedder.embed_batch(chunks)
+    records = [
+        VectorRecord(
+            id=f"{doc_id}_chunk_{idx}",
+            vector=vectors[idx],
+            source_text=chunk,
+            metadata={"doc_id": doc_id, "chunk_idx": idx, "source": "live_ingest"},
+        )
+        for idx, chunk in enumerate(chunks)
+    ]
+    store.upsert(records)
+    return {"doc_id": doc_id, "chunks": len(records), "vector_count": store.count()}
 
 
 if _init_pinecone():
     demo_state["backend"] = "pinecone"
 else:
-    print("[INIT] Demo mode — set PINECONE_API_KEY in .env to scan real Pinecone data")
+    print("[INIT] Pinecone not configured — set PINECONE_API_KEY in .env to use the live backend")
 
 
 @app.get("/")
@@ -143,29 +132,34 @@ async def root():
 
 @app.post("/api/run-demo")
 async def run_demo():
-    """Run scan → clean → re-scan on Pinecone (if configured) or demo index."""
+    """Run the real AAGCP scan → clean → re-scan workflow on the live Pinecone index."""
     try:
         demo_state["status"] = "running"
+        logger.info("run_demo started: backend=%s, index=%s, namespace=%s", backend_mode, index_name, pinecone_namespace)
 
-        prod, emb = _get_store_and_embedder()
+        if backend_mode != "pinecone" or store is None or embedder is None:
+            raise HTTPException(status_code=400, detail="Pinecone is not configured")
 
-        if backend_mode == "pinecone" and prod.count() == 0:
+        count = store.count()
+        logger.info("Pinecone vector count = %s", count)
+        if count == 0:
             raise HTTPException(
                 status_code=400,
                 detail=(
                     f"Pinecone index {index_name!r} namespace {pinecone_namespace!r} "
-                    "has 0 vectors. Ingest documents first or set PINECONE_NAMESPACE "
-                    "to match where your vectors live."
+                    "has 0 vectors. Ingest documents first to run the live workflow."
                 ),
             )
 
         detector = PIIDetector(use_presidio=None)
         scanner = Scanner(detector)
-        report = scanner.scan(prod, batch=50)
+        logger.info("Starting scan on %s vectors", count)
+        report = scanner.scan(store, batch=50)
         s = report.summary()
+        logger.info("Scan complete: %s", s)
 
         ANALYST_REVEAL = set()
-        ANALYST_PARTIAL = {"AADHAAR":"last4","IN_PHONE":"last4","US_SSN":"last4"}
+        ANALYST_PARTIAL = {"AADHAAR": "last4", "IN_PHONE": "last4", "US_SSN": "last4"}
         vault_secret = os.getenv("VAULT_SECRET")
         secret = (
             vault_secret.encode()
@@ -173,26 +167,44 @@ async def run_demo():
             else (vault_secret or b"pro-demo-fixed-secret-32-bytes!!")
         )
         vault = PseudonymVault(secret=secret)
-        ret_dirty = GovernedRetriever(prod, emb, vault, detector=None)
+        ret_dirty = GovernedRetriever(store, embedder, vault, detector=None)
 
+        # Retrieve and log hit shapes for debugging (helps catch missing fields)
+        hits_before = ret_dirty.query("diabetes patients", ANALYST_REVEAL, ANALYST_PARTIAL, k=5)
+        logger.info("Hits before cleaning: count=%s, sample_keys=%s",
+                    len(hits_before), [list(dict(h).keys()) for h in hits_before[:5]])
         queries_before = []
-        for h in ret_dirty.query("diabetes patients", ANALYST_REVEAL, ANALYST_PARTIAL, k=5):
-            queries_before.append(h.get("source_text", "")[:120])
+        for h in hits_before:
+            # Normalize potential None values before slicing
+            src = h.get("source_text") or h.get("text") or ""
+            queries_before.append(src[:120])
+        logger.info("Queries before cleaning computed: %s results", len(queries_before))
 
-        migrator = Migrator(detector, vault, emb)
-        mrep = migrator.clean(prod, report)
+        migrator = Migrator(detector, vault, embedder)
+        logger.info("Starting migration / clean step")
+        mrep = migrator.clean(store, report)
+        logger.info("Migration complete: %s", mrep)
 
-        report2 = scanner.scan(prod, batch=50)
+        report2 = scanner.scan(store, batch=50)
         s2 = report2.summary()
+        logger.info("Rescan complete: %s", s2)
 
-        ret_clean = GovernedRetriever(prod, emb, vault, detector=detector)
+        ret_clean = GovernedRetriever(store, embedder, vault, detector=detector)
+        hits_after_analyst = ret_clean.query("diabetes patients", ANALYST_REVEAL, ANALYST_PARTIAL, k=5)
+        logger.info("Hits after analyst: count=%s, sample_keys=%s",
+                    len(hits_after_analyst), [list(dict(h).keys()) for h in hits_after_analyst[:5]])
         queries_after_analyst = []
-        for h in ret_clean.query("diabetes patients", ANALYST_REVEAL, ANALYST_PARTIAL, k=5):
-            queries_after_analyst.append(h.get("text", "")[:120])
+        for h in hits_after_analyst:
+            queries_after_analyst.append((h.get("text") or h.get("source_text") or "")[:120])
+        logger.info("Queries after analyst computed: %s results", len(queries_after_analyst))
 
+        hits_after_compliance = ret_clean.query("diabetes patients", {"ALL"}, {}, k=5)
+        logger.info("Hits after compliance: count=%s, sample_keys=%s",
+                    len(hits_after_compliance), [list(dict(h).keys()) for h in hits_after_compliance[:5]])
         queries_after_compliance = []
-        for h in ret_clean.query("diabetes patients", {"ALL"}, {}, k=5):
-            queries_after_compliance.append(h.get("text", "")[:120])
+        for h in hits_after_compliance:
+            queries_after_compliance.append((h.get("text") or h.get("source_text") or "")[:120])
+        logger.info("Queries after compliance computed: %s results", len(queries_after_compliance))
 
         demo_state["data"] = {
             "backend": backend_mode,
@@ -203,12 +215,12 @@ async def run_demo():
             "migration_stats": {
                 "reembedded": mrep.reembedded,
                 "quarantined": mrep.quarantined,
-                "tokens_minted": mrep.pii_tokens_minted
+                "tokens_minted": mrep.pii_tokens_minted,
             },
             "queries_before": queries_before,
             "queries_after_analyst": queries_after_analyst,
             "queries_after_compliance": queries_after_compliance,
-            "detector_coverage": detector.coverage()
+            "detector_coverage": detector.coverage(),
         }
         demo_state["status"] = "complete"
         demo_state["error"] = None
@@ -219,8 +231,24 @@ async def run_demo():
     except HTTPException:
         raise
     except Exception as e:
+        trace = traceback.format_exc()
+        logger.error("run_demo failed: %s", trace)
         demo_state["status"] = "error"
-        demo_state["error"] = str(e)
+        demo_state["error"] = trace
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
+
+
+@app.post("/api/ingest")
+async def ingest_live(payload: dict):
+    """Ingest a JSON payload of text into the live Pinecone index."""
+    try:
+        text = payload.get("text", "")
+        doc_id = payload.get("doc_id") or "live-doc"
+        result = _ingest_text_to_store(text, doc_id=doc_id)
+        return {"status": "success", **result}
+    except HTTPException:
+        raise
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
