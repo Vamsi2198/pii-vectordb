@@ -13,17 +13,26 @@ sentence-transformers
 
 # PDF text extraction
 PyPDF2
+pdfplumber
 
 # ── Vector store connectors (install ONLY the one you use) ──
-# pinecone-client
+# Pinecone client
+pinecone-client
 # qdrant-client
 # psycopg[binary]      # for pgvector
 # faiss-cpu            # for local FAISS
-# rank-bm25            # optional hybrid lexical scoring
+rank_bm25            # optional hybrid lexical scoring
 
 # Web framework and server
 fastapi
 uvicorn[standard]
+python-multipart
 
 # dotenv for environment loading
 python-dotenv
+openai
+rank_bm25
+gunicorn
+python-docx
+pandas
+openpyxl
