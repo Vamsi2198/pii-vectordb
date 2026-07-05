@@ -204,13 +204,32 @@ def render_page():
                 components.iframe(api_base.rstrip("/") + "/", height=1100)
             else:
                 html = template_path.read_text(encoding="utf-8")
-                # Rewrite absolute root paths to target the API backend
-                html = html.replace('"/rag/', f'"{api_base.rstrip("/")}/rag/')
-                html = html.replace("'/rag/", f"'{api_base.rstrip('/')}/rag/")
-                html = html.replace('"/api/', f'"{api_base.rstrip("/")}/api/')
-                html = html.replace("'/api/", f"'{api_base.rstrip('/')}/api/")
-                html = html.replace('"/static/', f'"{api_base.rstrip("/")}/static/')
-                html = html.replace("'/static/", f"'{api_base.rstrip('/')}/static/")
+                host = api_base.rstrip("/")
+                # Rewrite common absolute root paths to target the API backend
+                html = html.replace('"/rag/', f'"{host}/rag/')
+                html = html.replace("'/rag/", f"'{host}/rag/")
+                html = html.replace('"/api/', f'"{host}/api/')
+                html = html.replace("'/api/", f"'{host}/api/")
+                html = html.replace('"/static/', f'"{host}/static/')
+                html = html.replace("'/static/", f"'{host}/static/")
+
+                # Inject a small script that defines window.API_BASE and prefixes relative fetch() calls
+                prefix_script = (
+                    "<script>"
+                    f"window.API_BASE = '{host}';"
+                    + "(function(){const _fetch = window.fetch; window.fetch = function(input, init){"
+                    + "try{ if(typeof input === 'string' && input.startsWith('/')) input = window.API_BASE + input; }catch(e){} return _fetch(input, init); };})();"
+                    + "</script>"
+                )
+
+                # Insert prefix_script inside <head> if present, otherwise prepend
+                head_index = html.lower().find('<head>')
+                if head_index != -1:
+                    insert_pos = head_index + len('<head>')
+                    html = html[:insert_pos] + prefix_script + html[insert_pos:]
+                else:
+                    html = prefix_script + html
+
                 components.html(html, height=1100, scrolling=True)
 
 
