@@ -224,7 +224,7 @@ def render_page():
 
     # Render full-page HTML with a larger iframe height and no internal scrolling
     # so Streamlit itself handles the page scroll instead of the embedded iframe.
-    components.html(html_injected, height=2400, scrolling=False)
+    components.html(html_injected, height=7000, scrolling=True)
 
 
 if __name__ == "__main__":
