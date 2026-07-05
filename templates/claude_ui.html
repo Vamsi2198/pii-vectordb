@@ -301,9 +301,12 @@
     </div>
 
     <div class="role-select">
-      <button class="role-btn active" data-role="none" onclick="setRole('none', this)"><span class="dot" style="background:var(--alert)"></span>No governance (baseline)</button>
-      <button class="role-btn" data-role="analyst" onclick="setRole('analyst', this)"><span class="dot" style="background:var(--safe)"></span>Analyst</button>
-      <button class="role-btn" data-role="admin" onclick="setRole('admin', this)"><span class="dot" style="background:var(--c5)"></span>Root / Compliance Admin</button>
+      <label for="roleSelect" style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--ink-faint); margin-bottom:8px; display:block;">Select role</label>
+      <select id="roleSelect" class="field" style="max-width:320px;">
+        <option value="none">No governance (baseline)</option>
+        <option value="analyst">Analyst</option>
+        <option value="admin">Root / Compliance Admin</option>
+      </select>
     </div>
 
     <div class="access-panel" id="accessPanel">
@@ -409,6 +412,9 @@
     document.getElementById('uploadIndexBtn').addEventListener('click', uploadAndIndex);
     document.getElementById('askRagBtn').addEventListener('click', askRag);
     document.getElementById('fileInput').addEventListener('change', handleFileSelection);
+    document.getElementById('roleSelect').addEventListener('change', function() {
+      setRole(this.value, this);
+    });
     await refreshStatus();
   }
 
