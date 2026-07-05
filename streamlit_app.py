@@ -178,70 +178,48 @@ def render_rag_tab():
 
 
 def render_page():
-    st.title("AAGCP Streamlit App")
-    st.write(
-        "This Streamlit wrapper reuses the existing masking and RAG logic from the repo. "
-        "The RAG tab requires the same environment variables and dependencies as the existing FastAPI app."
-    )
+        # Single Full UI mode: embed claude_ui.html full-page
+        st.markdown("# AAGCP Streamlit — Full UI")
+        st.write("This view embeds the full `claude_ui.html` UI and routes its API calls to the local backend.")
 
-    tab = st.tabs(["PII Masking", "RAG Retrieval", "Full UI (optional)"])
-
-    with tab[0]:
-        render_masking_tab()
-
-    with tab[1]:
-        render_rag_tab()
-
-    with tab[2]:
-        st.header("Full Claude UI (optional)")
-        st.write(
-            "This tab calls the backend APIs directly. Set `API_BASE` to your running FastAPI host "
-            "(for example http://127.0.0.1:8000) and then use the controls below."
-        )
-
-        # Hard-coded API base (do not prompt the user)
+        # Hard-coded API base (no user input)
         api_base = "http://localhost:8000"
         st.info(f"Using API base: {api_base} (hard-coded)")
 
         tpl = ROOT_DIR / "templates" / "claude_ui.html"
         if not tpl.exists():
-            st.error("templates/claude_ui.html not found in the repo templates folder.")
-            return
+                st.error("templates/claude_ui.html not found in the repo templates folder.")
+                return
 
         html = tpl.read_text(encoding="utf-8")
 
-        # Inject a small script to prefix relative fetch() calls with API base URL
-        fetch_override = """
+        # Inject script to rewrite relative fetch() calls to the hard-coded API base
+        fetch_override = f"""
 <script>
-  (function(){
-    const API_BASE = window.parent && window.parent.ST_API_BASE ? window.parent.ST_API_BASE : '%API_BASE%';
-    if(!API_BASE || API_BASE === 'None') return;
-    const _fetch = window.fetch.bind(window);
-    window.fetch = function(input, init){
-      try{
-        if(typeof input === 'string'){
-          if(input.startsWith('/')) input = API_BASE + input;
-        } else if(input instanceof Request){
-          const url = new URL(input.url);
-          if(url.origin === window.location.origin){
-            input = new Request(API_BASE + url.pathname + url.search, input);
-          }
-        }
-      }catch(e){/* ignore */}
-      return _fetch(input, init);
-    };
-  })();
+    (function(){
+        const API_BASE = '{api_base}';
+        const _fetch = window.fetch.bind(window);
+        window.fetch = function(input, init){
+            try{
+                if(typeof input === 'string'){
+                    if(input.startsWith('/')) input = API_BASE + input;
+                } else if(input instanceof Request){
+                    const url = new URL(input.url);
+                    if(url.origin === window.location.origin){
+                        input = new Request(API_BASE + url.pathname + url.search, input);
+                    }
+                }
+            }catch(e){/* ignore */}
+            return _fetch(input, init);
+        };
+    })();
 </script>
 """
 
-        # Replace placeholder with actual API base (escape single quotes)
-        fetch_override = fetch_override.replace('%API_BASE%', api_base.replace("'", "\\'") if api_base else '');
-
-        # Insert override right after <body> tag so it runs before the page JS
         html_injected = html.replace('<body>', '<body>' + fetch_override)
 
-        # Render the HTML inside Streamlit
-        components.html(html_injected, height=1100, scrolling=True)
+        # Render full-page HTML; increase height so it fills the Streamlit viewport
+        components.html(html_injected, height=1800, scrolling=True)
 
 
 if __name__ == "__main__":
