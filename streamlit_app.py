@@ -32,6 +32,7 @@ for secret_key in (
 sys.path.insert(0, str(RAG_ROOT))
 
 from Data_ingestion.pii import make_sensitive_text, HAS_VAULT, vault, reload_vault_if_needed
+import streamlit.components.v1 as components
 from Data_ingestion.data_ingestion import load_pdf, load_docx, load_excel, load_text
 
 st.set_page_config(page_title="AAGCP Streamlit", layout="wide")
@@ -180,13 +181,37 @@ def render_page():
         "The RAG tab requires the same environment variables and dependencies as the existing FastAPI app."
     )
 
-    tab = st.tabs(["PII Masking", "RAG Retrieval"])
+    tab = st.tabs(["PII Masking", "RAG Retrieval", "Full UI"])
 
     with tab[0]:
         render_masking_tab()
 
     with tab[1]:
         render_rag_tab()
+
+    with tab[2]:
+        st.header("Full Claude UI (embedded)")
+        st.write("Embed the existing `templates/claude_ui.html` inside Streamlit.\n\nSet `API_BASE` to the host serving the FastAPI backend so the page's fetch() calls route correctly.")
+        api_base = st.text_input("API base URL (include scheme)", value=os.getenv("API_BASE", "http://localhost:8000"))
+        embed_via_iframe = st.checkbox("Use iframe instead of embedding HTML (simpler)", value=False)
+
+        template_path = ROOT_DIR / "templates" / "claude_ui.html"
+        if not template_path.exists():
+            st.error(f"templates/claude_ui.html not found at {template_path}")
+        else:
+            if embed_via_iframe:
+                st.info("Embedding via iframe — make sure the backend is reachable at the API base URL and allows embedding.")
+                components.iframe(api_base.rstrip("/") + "/", height=1100)
+            else:
+                html = template_path.read_text(encoding="utf-8")
+                # Rewrite absolute root paths to target the API backend
+                html = html.replace('"/rag/', f'"{api_base.rstrip("/")}/rag/')
+                html = html.replace("'/rag/", f"'{api_base.rstrip('/')}/rag/")
+                html = html.replace('"/api/', f'"{api_base.rstrip("/")}/api/')
+                html = html.replace("'/api/", f"'{api_base.rstrip('/')}/api/")
+                html = html.replace('"/static/', f'"{api_base.rstrip("/")}/static/')
+                html = html.replace("'/static/", f"'{api_base.rstrip('/')}/static/")
+                components.html(html, height=1100, scrolling=True)
 
 
 if __name__ == "__main__":
