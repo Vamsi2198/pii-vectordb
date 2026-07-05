@@ -342,7 +342,11 @@
       <div class="qcard">
         <h4>Ask RAG</h4>
         <span class="field-label">AUTH TOKEN</span>
-        <input id="ragAuthToken" class="field" value="analyst_token">
+        <select id="ragAuthToken" class="field">
+          <option value="analyst_token">analyst_token</option>
+          <option value="admin_token">admin_token</option>
+          <option value="none">none</option>
+        </select>
         <span class="field-label">QUESTION</span>
         <textarea id="ragQuestionInput" class="field">patient</textarea>
         <button id="askRagBtn" class="cta-btn small">Ask RAG</button>
@@ -397,9 +401,10 @@
     }
   };
   function setRole(role, el){
-    document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
-    el.classList.add('active');
+    const roleSelect = document.getElementById('roleSelect');
+    if (roleSelect) roleSelect.value = role;
     const r = ROLES[role];
+    if (!r) return;
     document.getElementById('accessRole').textContent = r.token;
     document.getElementById('accessText').textContent = r.text;
     document.getElementById('accessAudit').textContent = r.audit;
@@ -412,9 +417,13 @@
     document.getElementById('uploadIndexBtn').addEventListener('click', uploadAndIndex);
     document.getElementById('askRagBtn').addEventListener('click', askRag);
     document.getElementById('fileInput').addEventListener('change', handleFileSelection);
-    document.getElementById('roleSelect').addEventListener('change', function() {
-      setRole(this.value, this);
-    });
+    const roleSelect = document.getElementById('roleSelect');
+    if (roleSelect) {
+      roleSelect.addEventListener('change', function() {
+        setRole(this.value, this);
+      });
+      setRole(roleSelect.value, roleSelect);
+    }
     await refreshStatus();
   }
 

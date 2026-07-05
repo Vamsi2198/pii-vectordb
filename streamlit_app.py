@@ -222,8 +222,9 @@ def render_page():
 
     html_injected = html.replace('<body>', '<body>' + fetch_override)
 
-    # Render full-page HTML; increase height so it fills the Streamlit viewport
-    components.html(html_injected, height=1800, scrolling=True)
+    # Render full-page HTML with a larger iframe height and no internal scrolling
+    # so Streamlit itself handles the page scroll instead of the embedded iframe.
+    components.html(html_injected, height=2400, scrolling=False)
 
 
 if __name__ == "__main__":
