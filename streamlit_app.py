@@ -192,8 +192,8 @@ def render_page():
     with tab[2]:
         st.header("Full Claude UI")
         st.write(
-            "Display the existing `templates/claude_ui.html` UI from your deployed FastAPI backend. "
-            "Enter the backend’s public URL in API_BASE and use iframe mode."
+            "This tab is optional. For a server-only deployment, run `app.py` on your server and open the backend URL directly. "
+            "Only use `API_BASE` if you want to embed the already-hosted FastAPI UI inside Streamlit."
         )
         default_api_base = st.secrets.get("API_BASE") if hasattr(st, "secrets") else None
         if not default_api_base:
@@ -201,7 +201,7 @@ def render_page():
         api_base = st.text_input("API base URL (include scheme)", value=default_api_base)
         if not api_base:
             st.warning(
-                "API_BASE is not configured. Enter the public URL of your deployed FastAPI backend, e.g. https://my-backend.onrender.com"
+                "For server-only deployment, deploy `app.py` and open its URL directly instead of using this tab."
             )
         elif api_base.startswith("http://localhost") or api_base.startswith("https://localhost"):
             st.warning(
@@ -213,7 +213,7 @@ def render_page():
             st.info("Embedding the backend UI from your deployed FastAPI host.")
             components.iframe(api_base.rstrip("/") + "/", height=1100)
         else:
-            st.error("Please enter your deployed FastAPI backend URL in API_BASE.")
+            st.error("Please enter your deployed FastAPI backend URL in API_BASE, or use the backend server directly.")
 
 
 if __name__ == "__main__":
