@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AAGCP-Vector PRO — Governed RAG for Production Vector Databases</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EBEEF0; --paper-2:#DEE2E5; --card:#F6F7F8;
+    --ink:#14171C; --ink-soft:#4B535C; --ink-faint:#7B838C;
+    --redact:#0A0A0A;
+    --alert:#B23A3A; --alert-soft:#F1D9D6; --alert-line:#DEB3AE;
+    --safe:#2F6F5E; --safe-soft:#D6E5E0; --safe-line:#AFCFC5;
+    --amber:#8A6A1E; --amber-soft:#F2E4BE;
+    --line:#C9CDD1; --line-soft:#D7DADD;
+    --c1:#4A5FBF; --c2:#7B4B8A; --c3:#C15B7A; --c4:#3E8E82;
+    --c5:#B2853A; --c6:#B23A3A; --c7:#5A8F3E; --c8:#8C8F52;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--paper); color:var(--ink); font-family:'IBM Plex Sans',sans-serif; line-height:1.5; -webkit-font-smoothing:antialiased;}
+  ::selection{background:var(--ink); color:var(--paper);}
+  .mono{font-family:'IBM Plex Mono',monospace;} .serif{font-family:'IBM Plex Serif',serif;}
+  .wrap{max-width:1140px; margin:0 auto; padding:0 32px;}
+
+  header{position:sticky; top:0; z-index:50; background:rgba(235,238,240,0.94); backdrop-filter:blur(6px); border-bottom:1px solid var(--line);}
+  nav{display:flex; align-items:center; justify-content:space-between; padding:18px 32px; max-width:1140px; margin:0 auto;}
+  .logo{display:flex; align-items:center; gap:10px; font-family:'IBM Plex Serif',serif; font-weight:700; font-size:19px;}
+  .logo .lock{width:26px; height:26px; border-radius:5px; background:var(--ink); display:flex; align-items:center; justify-content:center; font-size:14px;}
+  nav .links{display:flex; gap:32px; font-size:14px; font-weight:500; color:var(--ink-soft);}
+  nav .links a{text-decoration:none; transition:color .15s;}
+  nav .links a:hover{color:var(--ink);}
+  .cta-btn{background:var(--ink); color:var(--paper); border:none; padding:11px 20px; border-radius:3px; font-size:14px; font-weight:600; font-family:'IBM Plex Sans',sans-serif; cursor:pointer; text-decoration:none; display:inline-block;}
+  .cta-btn:hover{background:#000;}
+  .cta-btn.ghost{background:transparent; color:var(--ink); border:1.5px solid var(--ink);}
+  .cta-btn.ghost:hover{background:var(--ink); color:var(--paper);}
+  .cta-btn.small{padding:9px 16px; font-size:13px;}
+
+  /* HERO / PURPOSE */
+  .hero{padding:64px 0 48px;}
+  .eyebrow{display:inline-flex; align-items:center; gap:8px; font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); background:var(--paper-2); padding:5px 10px; border-radius:2px; margin-bottom:18px;}
+  h1{font-family:'IBM Plex Serif',serif; font-weight:600; font-size:38px; line-height:1.15; letter-spacing:-.01em; margin-bottom:14px; max-width:760px;}
+  .hero p.lead{font-size:16.5px; color:var(--ink-soft); max-width:640px; margin-bottom:28px;}
+
+  .runbar{background:var(--card); border:1px solid var(--line); border-radius:6px; padding:16px 20px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;}
+  .runbar .run-btn{background:var(--ink); color:var(--paper); border:none; padding:10px 16px; border-radius:3px; font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; display:flex; align-items:center; gap:8px; cursor:pointer;}
+  .runbar .run-btn .tri{width:0; height:0; border-top:5px solid transparent; border-bottom:5px solid transparent; border-left:7px solid var(--paper);}
+  .pill{background:var(--safe-soft); color:var(--safe); border:1px solid var(--safe-line); font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:600; padding:5px 12px; border-radius:20px;}
+  .runbar .status-text{font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--ink-faint);}
+  .runbar .status-text b{color:var(--safe);}
+
+  hr.divider{border:none; border-top:1px solid var(--line);}
+  section{padding:56px 0;}
+  .section-head{max-width:640px; margin-bottom:32px;}
+  .section-head .kicker{font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:8px; display:block;}
+  .section-head h2{font-family:'IBM Plex Serif',serif; font-size:27px; font-weight:600; letter-spacing:-.01em; margin-bottom:8px;}
+  .section-head p{color:var(--ink-soft); font-size:15px;}
+
+  /* DETECTOR COVERAGE */
+  .cov-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+  .cov-card{background:var(--card); border:1px solid var(--line); border-radius:6px; padding:20px 22px;}
+  .cov-card .label{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-faint); margin-bottom:8px;}
+  .cov-card .value{font-family:'IBM Plex Serif',serif; font-size:24px; font-weight:600;}
+  .cov-card .value.small{font-size:15px; font-family:'IBM Plex Mono',monospace; font-weight:500; line-height:1.7;}
+
+  /* SCAN RESULTS */
+  .scan-grid{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+  .scan-card{border-radius:6px; padding:22px 24px; border-left:4px solid;}
+  .scan-card.before{background:var(--alert-soft); border-color:var(--alert);}
+  .scan-card.after{background:var(--safe-soft); border-color:var(--safe);}
+  .scan-card .head{display:flex; align-items:center; gap:8px; font-weight:600; font-size:15px; margin-bottom:16px;}
+  .scan-card.before .head{color:var(--alert);}
+  .scan-card.after .head{color:var(--safe);}
+  .scan-row{display:flex; justify-content:space-between; font-size:14.5px; padding:8px 0; border-bottom:1px dashed rgba(0,0,0,0.08);}
+  .scan-row:last-child{border-bottom:none;}
+  .scan-row b{font-family:'IBM Plex Serif',serif; font-size:17px;}
+  .scan-card.before .scan-row b{color:var(--alert);}
+  .scan-card.after .scan-row b{color:var(--safe);}
+  .reduction-strip{margin-top:16px; text-align:center; font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--ink-soft); background:var(--card); border:1px solid var(--line); border-radius:6px; padding:10px;}
+  .reduction-strip b{color:var(--safe); font-size:15px;}
+
+  /* PII DISTRIBUTION */
+  .dist-wrap{display:grid; grid-template-columns:280px 1fr; gap:40px; align-items:center; background:var(--card); border:1px solid var(--line); border-radius:6px; padding:28px 32px;}
+  .donut-lg{width:220px; height:220px; border-radius:50%; position:relative; margin:0 auto;}
+  .donut-lg::before{content:''; position:absolute; inset:38px; background:var(--card); border-radius:50%;}
+  .donut-lg .center{position:absolute; inset:38px; display:flex; flex-direction:column; align-items:center; justify-content:center;}
+  .donut-lg .center b{font-family:'IBM Plex Serif',serif; font-size:26px;}
+  .donut-lg .center span{font-size:10.5px; color:var(--ink-faint); font-family:'IBM Plex Mono',monospace; text-align:center;}
+  .legend-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px 24px;}
+  .legend-item{display:flex; align-items:center; justify-content:space-between; font-size:13.5px; padding:6px 0; border-bottom:1px solid var(--line-soft);}
+  .legend-item .lab{display:flex; align-items:center; gap:8px; font-family:'IBM Plex Mono',monospace; font-size:12.5px;}
+  .legend-item .sw{width:10px; height:10px; border-radius:2px; flex-shrink:0;}
+
+  /* CLEANING OPS */
+  .ops-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+  .op-card{background:var(--card); border:1px solid var(--line); border-radius:6px; padding:20px 22px; display:flex; align-items:center; gap:14px;}
+  .op-card .icon{width:36px; height:36px; border-radius:6px; background:var(--paper-2); display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0;}
+  .op-card .txt .label{font-size:12.5px; color:var(--ink-faint); font-family:'IBM Plex Mono',monospace; margin-bottom:3px;}
+  .op-card .txt .value{font-family:'IBM Plex Serif',serif; font-size:21px; font-weight:600;}
+
+  /* ROLE ACCESS */
+  .risk-banner{display:flex; gap:12px; align-items:flex-start; background:var(--amber-soft); border:1px solid #D9C486; border-radius:6px; padding:16px 18px; margin-bottom:24px;}
+  .risk-banner .flag{font-size:18px;}
+  .risk-banner .t{font-size:14px; color:#5C4A12;}
+  .risk-banner .t b{font-weight:700;}
+
+  .role-select{display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;}
+  .role-btn{background:var(--card); border:1.5px solid var(--line); border-radius:20px; padding:9px 18px; font-size:13.5px; font-weight:600; cursor:pointer; font-family:'IBM Plex Sans',sans-serif; color:var(--ink-soft); transition:all .15s;}
+  .role-btn.active{background:var(--ink); color:var(--paper); border-color:var(--ink);}
+  .role-btn .dot{display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:7px;}
+
+  .access-panel{background:var(--card); border:1px solid var(--line); border-radius:6px; padding:24px 26px;}
+  .access-panel .meta{display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--ink-faint); margin-bottom:16px; padding-bottom:14px; border-bottom:1px dashed var(--line);}
+  .access-panel pre{font-family:'IBM Plex Mono',monospace; font-size:13.5px; line-height:2; color:var(--ink-soft); white-space:pre-wrap;}
+  .access-panel .tok{border-radius:2px; padding:0 4px; font-weight:500;}
+  .access-panel .audit-line{margin-top:16px; padding-top:14px; border-top:1px dashed var(--line); font-size:12px; color:var(--ink-faint); font-family:'IBM Plex Mono',monospace; display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px;}
+
+  /* LIVE QUERY */
+  .query-grid{display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px;}
+  .qcard{background:var(--card); border:1px solid var(--line); border-radius:6px; padding:20px 22px;}
+  .qcard h4{font-family:'IBM Plex Serif',serif; font-size:15.5px; margin-bottom:14px;}
+  .field-label{font-size:12px; color:var(--ink-faint); font-family:'IBM Plex Mono',monospace; margin-bottom:6px; display:block;}
+  .field{width:100%; border:1px solid var(--line); background:var(--paper); border-radius:4px; padding:10px 12px; font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--ink-soft); margin-bottom:14px;}
+  textarea.field{resize:none; min-height:70px;}
+  .file-row{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
+  .file-btn{border:1px solid var(--line); background:var(--paper-2); border-radius:4px; padding:8px 14px; font-size:12.5px; font-family:'IBM Plex Mono',monospace;}
+  .chunks-list{display:flex; flex-direction:column; gap:10px;}
+  .chunk-item{border:1px solid var(--line); border-radius:5px; padding:12px 14px; background:var(--paper);}
+  .chunk-item .chead{display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--ink-faint); margin-bottom:6px;}
+  .chunk-item .chead b{color:var(--ink-soft);}
+  .chunk-item p{font-size:12.5px; color:var(--ink-soft); line-height:1.7;}
+  .chunk-item .tok{background:var(--safe-soft); color:var(--safe); border-radius:2px; padding:0 3px; font-family:'IBM Plex Mono',monospace; font-size:12px;}
+
+  .final-cta{text-align:center; padding:80px 0; border-top:1px solid var(--line);}
+  .final-cta h2{font-family:'IBM Plex Serif',serif; font-size:32px; font-weight:600; margin-bottom:14px; max-width:600px; margin-left:auto; margin-right:auto;}
+  .final-cta p{color:var(--ink-soft); margin-bottom:26px; font-size:15.5px;}
+  .final-cta .actions{display:flex; gap:14px; justify-content:center;}
+  footer.site-foot{border-top:1px solid var(--line); padding:24px 0; text-align:center; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-faint);}
+
+  @media (max-width:900px){
+    .cov-grid, .ops-grid, .scan-grid, .query-grid{grid-template-columns:1fr;}
+    .dist-wrap{grid-template-columns:1fr;}
+    .legend-grid{grid-template-columns:1fr 1fr;}
+    nav .links{display:none;}
+    h1{font-size:29px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <nav>
+    <div class="logo"><span class="lock">🔒</span> AAGCP-Vector PRO</div>
+    <div class="links">
+      <a href="#coverage">Coverage</a>
+      <a href="#scan">Scan Results</a>
+      <a href="#access">Access Control</a>
+      <a href="#query">Live Query</a>
+    </div>
+    <a href="#book" class="cta-btn">Request enterprise trial</a>
+  </nav>
+</header>
+
+<main class="wrap">
+
+  <!-- HERO / PURPOSE -->
+  <section class="hero">
+    <span class="eyebrow">Real-time PII detection &amp; cleaning · production vector databases</span>
+    <h1>A governed RAG pipeline that scans, protects, and retrieves — with any vector database as the single source of truth.</h1>
+    <p class="lead">AAGCP-Vector PRO connects to the vector store you already run, finds the PII sitting inside existing embeddings, cleans it in place, and enforces who gets to see what at query time — without touching your retrieval quality.</p>
+    <div class="runbar">
+      <button id="runPipelineBtn" class="run-btn"><span class="tri"></span>Run Pipeline on Pinecone</button>
+      <span class="pill" id="runPipelineBackend">Pinecone</span>
+      <span class="status-text" id="runPipelineStatus">Ready to run the live pipeline.</span>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- DETECTOR COVERAGE -->
+  <section id="coverage">
+    <div class="section-head">
+      <span class="kicker">Detector coverage</span>
+      <h2>What's watching your data</h2>
+      <p>Pattern rules and a named-entity model run together, so both structured identifiers and free-text mentions get caught.</p>
+    </div>
+    <div class="cov-grid">
+      <div class="cov-card"><div class="label">REGEX PATTERNS</div><div class="value" id="regexCount">-</div></div>
+      <div class="cov-card"><div class="label">NER BACKEND</div><div class="value" id="nerBackend">-</div></div>
+      <div class="cov-card"><div class="label">CONNECTED VECTOR STORES</div><div class="value small">Pinecone · Weaviate · Milvus · pgvector · Qdrant</div></div>
+    </div>
+  </section>
+
+  <hr class="divider">
+  <!-- DETECTED ENTITIES -->
+  <section>
+    <div class="section-head">
+      <span class="kicker">Detected entities</span>
+      <h2>Detector outputs: regex & NER entities</h2>
+      <p>Lists of entity labels discovered by detectors during the scan.</p>
+    </div>
+    <div class="cov-grid">
+      <div class="cov-card"><div class="label">Regex entities</div><div class="value small mono" id="regexEntitiesList">-</div></div>
+      <div class="cov-card"><div class="label">NER entities</div><div class="value small mono" id="nerEntitiesList">-</div></div>
+      <div class="cov-card"><div class="label">Detector summary</div><div class="value small mono" id="detectorSummary">-</div></div>
+    </div>
+  </section>
+
+  <!-- SCAN RESULTS -->
+  <section id="scan">
+    <div class="section-head">
+      <span class="kicker">Scan results</span>
+      <h2>Before vs. after cleaning</h2>
+      <p>The most recent run on this index, straight from the pipeline log.</p>
+    </div>
+    <div class="scan-grid">
+      <div class="scan-card before">
+        <div class="head">✕ Before cleaning</div>
+        <div class="scan-row"><span>Total vectors</span><b id="beforeVectors">-</b></div>
+        <div class="scan-row"><span>Vectors with PII</span><b id="beforeWithPII">-</b></div>
+        <div class="scan-row"><span>Total PII instances</span><b id="beforePIICount">-</b></div>
+      </div>
+      <div class="scan-card after">
+        <div class="head">✓ After cleaning</div>
+        <div class="scan-row"><span>Total vectors</span><b id="afterVectors">-</b></div>
+        <div class="scan-row"><span>Vectors with PII</span><b id="afterWithPII">-</b></div>
+        <div class="scan-row"><span>Total PII instances</span><b id="afterPIICount">-</b></div>
+      </div>
+    </div>
+    <div id="reductionStrip" class="reduction-strip">PII instances cut by <b>-</b> in this run — <span id="reductionBefore">-</span> → <span id="reductionAfter">-</span>, with every original value preserved in the vault, not deleted.</div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- DISTRIBUTION -->
+  <section>
+    <div class="section-head">
+      <span class="kicker">Before cleaning</span>
+      <h2>PII distribution by type</h2>
+      <p>What kind of data made up those 289 instances, broken down by detector label.</p>
+    </div>
+    <div class="dist-wrap">
+      <div class="donut-lg" style="background:conic-gradient(
+        var(--c1) 0% 26%, var(--c2) 26% 45%, var(--c3) 45% 62%,
+        var(--c4) 62% 77%, var(--c5) 77% 94%, var(--c6) 94% 96%,
+        var(--c7) 96% 98%, var(--c8) 98% 100%);">
+        <div class="center"><b id="piiTotal">-</b><span>PII INSTANCES<br>8 TYPES</span></div>
+      </div>
+      <div class="legend-grid" id="distributionLegend">
+        <!-- dynamically populated -->
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- CLEANING OPS -->
+  <section>
+    <div class="section-head">
+      <span class="kicker">Cleaning operation results</span>
+      <h2>What the pipeline did about it</h2>
+    </div>
+    <div class="ops-grid">
+      <div class="op-card"><div class="icon">✓</div><div class="txt"><div class="label">RE-EMBEDDED (CLEANED)</div><div class="value" id="reembedded">-</div></div></div>
+      <div class="op-card"><div class="icon">⚠</div><div class="txt"><div class="label">QUARANTINED (NO SOURCE)</div><div class="value" id="quarantined">-</div></div></div>
+      <div class="op-card"><div class="icon">🔑</div><div class="txt"><div class="label">PII TOKENS MINTED</div><div class="value" id="tokensMinted">-</div></div></div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- QUERY LISTS -->
+  <section>
+    <div class="section-head">
+      <span class="kicker">Sample queries</span>
+      <h2>Representative queries before/after cleaning</h2>
+      <p>Shows example retrieved snippets used to validate masking and re-embedding.</p>
+    </div>
+    <div class="cov-grid">
+      <div class="cov-card"><div class="label">Before cleaning (sample)</div><div class="value small" id="queriesBefore">—</div></div>
+      <div class="cov-card"><div class="label">After analyst masking</div><div class="value small" id="queriesAfterAnalyst">—</div></div>
+      <div class="cov-card"><div class="label">After compliance reveal</div><div class="value small" id="queriesAfterCompliance">—</div></div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ROLE-BASED ACCESS -->
+  <section id="access">
+    <div class="section-head">
+      <span class="kicker">Query results</span>
+      <h2>Role-based access control</h2>
+      <p>Same chunk, same vector position — what comes back depends entirely on who's asking. Switch roles below to see it.</p>
+    </div>
+
+    <div class="risk-banner">
+      <span class="flag">⚠</span>
+      <span class="t"><b>Without governance:</b> any caller with query access sees Aadhaar numbers, SSNs, and email addresses in plain text. That's the exposure this pipeline exists to close.</span>
+    </div>
+
+    <div class="role-select">
+      <button class="role-btn active" data-role="none" onclick="setRole('none', this)"><span class="dot" style="background:var(--alert)"></span>No governance (baseline)</button>
+      <button class="role-btn" data-role="analyst" onclick="setRole('analyst', this)"><span class="dot" style="background:var(--safe)"></span>Analyst</button>
+      <button class="role-btn" data-role="admin" onclick="setRole('admin', this)"><span class="dot" style="background:var(--c5)"></span>Root / Compliance Admin</button>
+    </div>
+
+    <div class="access-panel" id="accessPanel">
+      <div class="meta"><span>chunk_id: 0x4F19 · index: patient-records-prod</span><span id="accessRole">token: none</span></div>
+      <pre id="accessText">Patient record — Ramesh Iyer, age 51, Mumbai. Visited Apollo Hospital on 15 June 2026 for a routine diabetes checkup. Aadhaar number 3847 2156 9034 verified at registration. Contact: +91 98765 43210, ramesh.iyer@healthcare.in. Diagnosed with Type 2 Diabetes; medical record MRN-654321.</pre>
+      <div class="audit-line"><span id="accessAudit">No reveal permission required — nothing is masked, nothing is logged.</span><span>vault ref: vlt_9f21ac</span></div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- LIVE QUERY DEMO -->
+  <section id="query">
+    <div class="section-head">
+      <span class="kicker">Try it</span>
+      <h2>Upload, index, and ask</h2>
+      <p>The same console your team would use day to day — upload a document, choose whether to mask on the way in, then query it through the RAG endpoint.</p>
+    </div>
+    <div class="query-grid">
+      <div class="qcard">
+        <h4>Upload document</h4>
+        <div class="file-row">
+          <label class="file-btn" for="fileInput">Choose File</label>
+          <span class="mono" id="selectedFileName" style="font-size:12.5px; color:var(--ink-faint);">No file selected</span>
+          <input type="file" id="fileInput" style="display:none" accept=".txt,.pdf" />
+        </div>
+        <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink-soft); margin-bottom:14px;">
+          <input type="checkbox" id="maskPiiOnIngest" checked> Mask PII before indexing
+        </label>
+        <button id="uploadIndexBtn" class="cta-btn small">Upload &amp; Index</button>
+        <button id="loadDemoBtn" class="cta-btn ghost small" style="margin-left:8px;">Load Demo Data</button>
+      </div>
+      <div class="qcard">
+        <h4>Ask RAG</h4>
+        <span class="field-label">AUTH TOKEN</span>
+        <input id="ragAuthToken" class="field" value="analyst_token">
+        <span class="field-label">QUESTION</span>
+        <textarea id="ragQuestionInput" class="field">patient</textarea>
+        <button id="askRagBtn" class="cta-btn small">Ask RAG</button>
+        <div style="margin-top:12px; display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink-soft);">
+          <input type="checkbox" id="ragMaskPiiCheckbox" checked>
+          <label for="ragMaskPiiCheckbox" style="margin:0;">Mask PII on query</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="qcard">
+      <h4>Retrieved chunks — shown at Analyst clearance</h4>
+      <div id="ragStatusMessage" class="field" style="background:var(--paper); color:var(--ink-soft); min-height:56px;">Ask a question to see retrieved results.</div>
+      <div id="ragRetrievedOutput" class="chunks-list"></div>
+    </div>
+  </section>
+
+</main>
+
+<div class="final-cta" id="book">
+  <div class="wrap">
+    <h2 class="serif">Give us ten minutes with your vector database.</h2>
+    <p>We'll run a read-only scan live, on your data, and show your team exactly what's exposed today — and what it looks like once it's governed.</p>
+    <div class="actions">
+      <a href="#" class="cta-btn">Book a walkthrough</a>
+      <a href="#" class="cta-btn ghost">Get the technical one-pager</a>
+    </div>
+  </div>
+</div>
+
+<footer class="site-foot">AAGCP-Vector PRO — Real-time PII detection &amp; cleaning for production vector databases · demo build</footer>
+
+<script>
+  const ROLES = {
+    none: {
+      token: 'token: none',
+      text: 'Patient record — Ramesh Iyer, age 51, Mumbai. Visited Apollo Hospital on 15 June 2026 for a routine diabetes checkup. Aadhaar number 3847 2156 9034 verified at registration. Contact: +91 98765 43210, ramesh.iyer@healthcare.in. Diagnosed with Type 2 Diabetes; medical record MRN-654321.',
+      audit: 'No reveal permission required — nothing is masked, nothing is logged.',
+      accent: 'var(--alert)'
+    },
+    analyst: {
+      token: 'token: analyst_token',
+      text: 'Patient record — <PERSON_a8f3>, age 51, <LOCATION_2e91>. Visited Apollo Hospital on <DATE_TIME_7b05> for a routine diabetes checkup. Aadhaar number <PAN_dbd4> verified at registration. Contact: <PHONE_NUMBER_e2b3>, <EMAIL_ADDRESS_9c67>. Diagnosed with Type 2 Diabetes; medical record <MRN_3936>.',
+      audit: 'Reveal permission: none — identifiers tokenized, query logged as read-only.',
+      accent: 'var(--safe)'
+    },
+    admin: {
+      token: 'token: admin_token',
+      text: 'Patient record — Ramesh Iyer, age 51, Mumbai. Visited Apollo Hospital on 15 June 2026 for a routine diabetes checkup. Aadhaar number 3847 2156 9034 verified at registration. Contact: +91 98765 43210, ramesh.iyer@healthcare.in. Diagnosed with Type 2 Diabetes; medical record MRN-654321.',
+      audit: 'Reveal permission: granted — full value shown, logged to audit trail #a4471.',
+      accent: 'var(--c5)'
+    }
+  };
+  function setRole(role, el){
+    document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    const r = ROLES[role];
+    document.getElementById('accessRole').textContent = r.token;
+    document.getElementById('accessText').textContent = r.text;
+    document.getElementById('accessAudit').textContent = r.audit;
+    document.getElementById('accessPanel').style.borderLeft = '4px solid ' + r.accent;
+  }
+
+  async function initUI() {
+    document.getElementById('runPipelineBtn').addEventListener('click', runPipeline);
+    document.getElementById('loadDemoBtn').addEventListener('click', loadDemoData);
+    document.getElementById('uploadIndexBtn').addEventListener('click', uploadAndIndex);
+    document.getElementById('askRagBtn').addEventListener('click', askRag);
+    document.getElementById('fileInput').addEventListener('change', handleFileSelection);
+    await refreshStatus();
+  }
+
+  async function refreshStatus() {
+    try {
+      const response = await fetch('/api/status');
+      if (!response.ok) return;
+      const info = await response.json();
+      const backend = info.backend || 'unknown';
+      document.getElementById('runPipelineBackend').textContent = backend;
+      document.getElementById('runPipelineStatus').textContent = info.status === 'running' ? 'Pipeline is currently running...' : 'Ready to run the live pipeline.';
+    } catch (err) {
+      console.warn('Status refresh failed', err);
+    }
+  }
+
+  async function runPipeline() {
+    const btn = document.getElementById('runPipelineBtn');
+    const status = document.getElementById('runPipelineStatus');
+    btn.disabled = true;
+    status.textContent = 'Running pipeline...';
+    try {
+      const response = await fetch('/api/run-demo', { method: 'POST' });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.detail || payload.error || 'Pipeline failed');
+      }
+      if (payload.status !== 'success') {
+        throw new Error(payload.message || 'Pipeline did not complete successfully');
+      }
+      status.textContent = 'Pipeline completed successfully.';
+      document.getElementById('runPipelineBackend').textContent = payload.data?.backend || 'pinecone';
+      // Apply returned demo data to the UI
+      applyDemoData(payload.data);
+    } catch (err) {
+      status.textContent = `Pipeline error: ${err.message}`;
+    } finally {
+      btn.disabled = false;
+      await refreshStatus();
+    }
+  }
+
+  function applyDemoData(d) {
+    if (!d) return;
+    try {
+      const cov = d.detector_coverage || {};
+      const dirty = d.dirty_scan || {};
+      const clean = d.clean_scan || {};
+
+      if (document.getElementById('regexCount')) document.getElementById('regexCount').textContent = cov.regex_entity_count ?? cov.regex_count ?? '-';
+      if (document.getElementById('nerBackend')) document.getElementById('nerBackend').textContent = cov.ner_backend ?? '-';
+
+      if (document.getElementById('beforeVectors')) document.getElementById('beforeVectors').textContent = dirty.total_vectors ?? (dirty.vectors || dirty.count) ?? '-';
+      if (document.getElementById('beforeWithPII')) document.getElementById('beforeWithPII').textContent = dirty.vectors_with_pii ?? '-';
+      if (document.getElementById('beforePIICount')) document.getElementById('beforePIICount').textContent = dirty.total_pii_instances ?? '-';
+
+      if (document.getElementById('afterVectors')) document.getElementById('afterVectors').textContent = clean.total_vectors ?? '-';
+      if (document.getElementById('afterWithPII')) document.getElementById('afterWithPII').textContent = clean.vectors_with_pii ?? '-';
+      if (document.getElementById('afterPIICount')) document.getElementById('afterPIICount').textContent = clean.total_pii_instances ?? '-';
+
+      if (document.getElementById('reembedded')) document.getElementById('reembedded').textContent = d.migration_stats?.reembedded ?? '-';
+      if (document.getElementById('quarantined')) document.getElementById('quarantined').textContent = d.migration_stats?.quarantined ?? '-';
+      if (document.getElementById('tokensMinted')) document.getElementById('tokensMinted').textContent = d.migration_stats?.tokens_minted ?? '-';
+
+      if (document.getElementById('piiTotal')) document.getElementById('piiTotal').textContent = dirty.total_pii_instances ?? '-';
+      // Reduction strip
+      try {
+        const before = Number(dirty.total_pii_instances) || 0;
+        const after = Number(clean.total_pii_instances) || 0;
+        const pct = before ? Math.round(((before - after) / before) * 100) : 0;
+        const pctEl = document.querySelector('#reductionStrip b');
+        const befEl = document.getElementById('reductionBefore');
+        const aftEl = document.getElementById('reductionAfter');
+        if (pctEl) pctEl.textContent = pct + '%';
+        if (befEl) befEl.textContent = before;
+        if (aftEl) aftEl.textContent = after;
+      } catch(e){console.warn('reduction strip update failed', e)}
+
+      // Populate distribution legend
+      try {
+        const legend = document.getElementById('distributionLegend');
+        if (legend) {
+          legend.innerHTML = '';
+          const byType = dirty.by_type || {};
+          const total = Number(dirty.total_pii_instances) || Object.values(byType).reduce((a,b)=>a+b,0) || 0;
+          const colors = ['--c1','--c2','--c3','--c4','--c5','--c6','--c7','--c8'];
+          const entries = Object.entries(byType).sort((a,b)=>b[1]-a[1]);
+          if (entries.length === 0) {
+            legend.innerHTML = '<div class="legend-item">No PII types detected</div>';
+          } else {
+            entries.forEach(([type, cnt], idx) => {
+              const pct = total ? Math.round((cnt/total)*100) : 0;
+              const colorVar = colors[idx % colors.length];
+              const item = document.createElement('div');
+              item.className = 'legend-item';
+              item.innerHTML = `<span class="lab"><i class="sw" style="background:var(${colorVar})"></i>${type}</span><span>${pct}%</span>`;
+              legend.appendChild(item);
+            });
+          }
+        }
+      } catch(e){console.warn('distribution render failed', e)}
+
+      // Populate sample queries (show a few examples)
+      try {
+        const qBefore = document.getElementById('queriesBefore');
+        const qAnalyst = document.getElementById('queriesAfterAnalyst');
+        const qCompliance = document.getElementById('queriesAfterCompliance');
+        const joinItems = (arr, n=3)=> (arr && arr.length) ? arr.slice(0,n).map(x=>typeof x==='string'?x:JSON.stringify(x)).join('\n\n—\n\n') : '—';
+        if (qBefore) qBefore.textContent = joinItems(d.queries_before, 5);
+        if (qAnalyst) qAnalyst.textContent = joinItems(d.queries_after_analyst, 5);
+        if (qCompliance) qCompliance.textContent = joinItems(d.queries_after_compliance, 5);
+      } catch(e){console.warn('queries render failed', e)}
+
+      // Populate detector entity lists
+      try {
+        const regexListEl = document.getElementById('regexEntitiesList');
+        const nerListEl = document.getElementById('nerEntitiesList');
+        const summaryEl = document.getElementById('detectorSummary');
+        const regexEntities = (cov.regex_entities && Array.isArray(cov.regex_entities)) ? cov.regex_entities : (cov.regex_entity_examples || []);
+        const nerEntities = (cov.ner_entities && Array.isArray(cov.ner_entities)) ? cov.ner_entities : [];
+        if (regexListEl) regexListEl.textContent = regexEntities.length ? regexEntities.join(', ') : '-';
+        if (nerListEl) nerListEl.textContent = nerEntities.length ? nerEntities.join(', ') : '-';
+        if (summaryEl) summaryEl.textContent = `regex_count: ${cov.regex_entity_count||'-'} • ner_backend: ${cov.ner_backend||'-'}`;
+      } catch(e){console.warn('entity lists render failed', e)}
+    } catch (e) {
+      console.warn('applyDemoData failed', e);
+    }
+  }
+
+  function handleFileSelection(event) {
+    const file = event.target.files[0];
+    const label = document.getElementById('selectedFileName');
+    if (!file) {
+      label.textContent = 'No file selected';
+      return;
+    }
+    label.textContent = file.name;
+  }
+
+  async function uploadAndIndex() {
+    const fileInput = document.getElementById('fileInput');
+    if (!fileInput.files.length) {
+      alert('Select a file to upload and index.');
+      return;
+    }
+    const file = fileInput.files[0];
+    const form = new FormData();
+    form.append('file', file);
+    form.append('doc_id', file.name);
+    const maskCheckbox = document.getElementById('maskPiiOnIngest');
+    const maskPii = maskCheckbox ? String(maskCheckbox.checked) : 'true';
+    form.append('mask_pii', maskPii);
+    try {
+      const response = await fetch('/rag/upload', {
+        method: 'POST',
+        body: form,
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.detail || result.error || JSON.stringify(result));
+      }
+      // RAG upload returns {status:'saved', chunks, filename, preview_url, mask_pii}
+      alert(`Indexed ${result.chunks} chunks from ${result.filename}`);
+      await refreshStatus();
+    } catch (err) {
+      alert(`Upload failed: ${err.message}`);
+    }
+  }
+
+  async function loadDemoData() {
+    const btn = document.getElementById('loadDemoBtn');
+    btn.disabled = true;
+    try {
+      const response = await fetch('/rag/api/load-demo-data', { method: 'POST' });
+      const result = await response.json();
+      if (!response.ok || result.status !== 'success') {
+        throw new Error(result.error || result.message || 'Demo load failed');
+      }
+      alert(`Loaded ${result.documents || 0} sample documents into RAG.`);
+      await refreshStatus();
+    } catch (err) {
+      alert(`Demo load failed: ${err.message}`);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function askRag() {
+    const question = document.getElementById('ragQuestionInput').value.trim();
+    const authToken = document.getElementById('ragAuthToken').value.trim();
+    const maskPii = document.getElementById('ragMaskPiiCheckbox').checked;
+    const statusEl = document.getElementById('ragStatusMessage');
+    const outputEl = document.getElementById('ragRetrievedOutput');
+    if (!question) {
+      alert('Enter a question for RAG.');
+      return;
+    }
+    statusEl.textContent = 'Querying RAG...';
+    outputEl.innerHTML = '';
+    try {
+      const params = new URLSearchParams({ question, authorization: authToken, mask_pii: String(maskPii) });
+      const response = await fetch(`/rag/query?${params.toString()}`);
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.detail || result.error || JSON.stringify(result));
+      }
+      statusEl.textContent = result.answer || 'No answer returned.';
+      if (Array.isArray(result.retrieved) && result.retrieved.length) {
+        outputEl.innerHTML = '';
+        result.retrieved.slice(0, 5).forEach((item, index) => {
+          const card = document.createElement('div');
+          card.className = 'chunk-item';
+          const text = item.meta?.text || '(no text)';
+          card.innerHTML = `
+            <div class="chead"><span>Chunk ${index + 1}</span><b>score: ${item.score?.toFixed(3) ?? 'N/A'}</b></div>
+            <p>${text}</p>
+          `;
+          outputEl.appendChild(card);
+        });
+      } else {
+        outputEl.innerHTML = '<div class="chunk-item">No chunks returned.</div>';
+      }
+    } catch (err) {
+      statusEl.textContent = `Query failed: ${err.message}`;
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', initUI);
+</script>
+
+</body>
+</html>

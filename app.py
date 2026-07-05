@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """FastAPI backend for AAGCP-Vector PRO frontend dashboard."""
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 import logging
@@ -25,11 +25,14 @@ from aagcp.retrieve.retriever import GovernedRetriever
 
 app = FastAPI()
 
+template_root = Path(__file__).resolve().parent / "templates"
+static_root = Path(__file__).resolve().parent / "static"
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger("aagcp_app")
 # sdksm
-Path("static").mkdir(exist_ok=True)
-app.mount("/static", StaticFiles(directory="static"), name="static")
+static_root.mkdir(exist_ok=True)
+app.mount("/static", StaticFiles(directory=str(static_root)), name="static")
 
 # Mount the RAG app from the pii-rag-main folder at /rag
 rag_root = Path(__file__).resolve().parent / "pii-rag-main"
@@ -138,10 +141,21 @@ else:
 
 @app.get("/")
 async def root():
-    html_path = Path("templates/dashboard.html")
+    html_path = template_root / "claude_ui.html"
     if html_path.exists():
         return FileResponse(html_path, media_type="text/html")
-    return HTMLResponse("<h1>Dashboard not found. Create templates/dashboard.html</h1>")
+    html_path = template_root / "dashboard.html"
+    if html_path.exists():
+        return FileResponse(html_path, media_type="text/html")
+    return HTMLResponse("<h1>Dashboard not found. Create templates/claude_ui.html or templates/dashboard.html</h1>")
+
+
+@app.get("/ui")
+async def ui_page():
+    html_path = template_root / "claude_ui.html"
+    if html_path.exists():
+        return FileResponse(html_path, media_type="text/html")
+    return HTMLResponse("<h1>Claude UI not found. Create templates/claude_ui.html</h1>")
 
 
 @app.get("/rag-test")
@@ -342,6 +356,52 @@ async def ingest_live(payload: dict):
         doc_id = payload.get("doc_id") or "live-doc"
         result = _ingest_text_to_store(text, doc_id=doc_id)
         return {"status": "success", **result}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/ingest-file")
+async def ingest_file_endpoint(file: UploadFile = File(...), doc_id: Optional[str] = Form(None)):
+    """Accept an uploaded file (PDF or text), extract text, and ingest into the live store."""
+    try:
+        # Read file contents
+        filename = file.filename or doc_id or 'uploaded'
+        content_type = (file.content_type or '').lower()
+
+        text = None
+        # Handle PDF extraction
+        if content_type == 'application/pdf' or filename.lower().endswith('.pdf'):
+            try:
+                import PyPDF2
+            except ImportError:
+                raise HTTPException(status_code=500, detail="PyPDF2 not installed; cannot extract PDF text. Add PyPDF2 to requirements.txt and install.")
+            try:
+                # file.file is a SpooledTemporaryFile or similar
+                reader = PyPDF2.PdfReader(file.file)
+                pages = [p.extract_text() or '' for p in reader.pages]
+                text = '\n'.join(pages)
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=f"PDF extraction failed: {e}")
+        else:
+            # Fallback: read as text
+            raw = await file.read()
+            try:
+                text = raw.decode('utf-8')
+            except Exception:
+                # try latin-1
+                try:
+                    text = raw.decode('latin-1')
+                except Exception:
+                    raise HTTPException(status_code=400, detail="Could not decode uploaded file as text")
+
+        if not text or text.strip() == '':
+            raise HTTPException(status_code=400, detail="No text extracted from uploaded file")
+
+        result = _ingest_text_to_store(text, doc_id=doc_id or filename)
+        return {"status": "success", **result}
+
     except HTTPException:
         raise
     except Exception as e:

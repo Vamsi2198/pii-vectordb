@@ -2,10 +2,6 @@
 numpy
 pyyaml
 
-# ── Web Dashboard (FastAPI frontend) ──
-fastapi
-uvicorn[standard]
-
 # ── Global NER detection (recommended for full coverage) ──
 # Names, addresses, orgs, medical conditions need NER, not regex.
 presidio-analyzer
@@ -14,23 +10,20 @@ presidio-anonymizer
 
 # ── Real embeddings (recommended for production retrieval) ──
 sentence-transformers
-rank_bm25
 
-# ── Streamlit deployment / demo UI support ──
-streamlit
-python-dotenv
-torch
-torchvision
-pdfplumber
-python-docx
-pandas
-openpyxl
-openai
+# PDF text extraction
+PyPDF2
 
 # ── Vector store connectors (install ONLY the one you use) ──
-# pinecone (the modern package name)
-pinecone
+# pinecone-client
 # qdrant-client
 # psycopg[binary]      # for pgvector
 # faiss-cpu            # for local FAISS
 # rank-bm25            # optional hybrid lexical scoring
+
+# Web framework and server
+fastapi
+uvicorn[standard]
+
+# dotenv for environment loading
+python-dotenv
