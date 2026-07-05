@@ -199,9 +199,9 @@ def render_page():
             "(for example http://127.0.0.1:8000) and then use the controls below."
         )
 
-        api_base = st.text_input("API base URL", value=(st.secrets.get("API_BASE") if hasattr(st, "secrets") else os.getenv("API_BASE", "")))
-        if api_base:
-            api_base = api_base.rstrip("/")
+        # Hard-coded API base (do not prompt the user)
+        api_base = "http://localhost:8000"
+        st.info(f"Using API base: {api_base} (hard-coded)")
 
         tpl = ROOT_DIR / "templates" / "claude_ui.html"
         if not tpl.exists():
