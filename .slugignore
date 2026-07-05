@@ -1,4 +1,3 @@
-.env
 .conda/
 myenv/
 __pycache__/
@@ -9,3 +8,4 @@ __pycache__/
 .vscode/
 .idea/
 node_modules/
+.git/
