@@ -178,48 +178,52 @@ def render_rag_tab():
 
 
 def render_page():
-        # Single Full UI mode: embed claude_ui.html full-page
-        st.markdown("# AAGCP Streamlit — Full UI")
-        st.write("This view embeds the full `claude_ui.html` UI and routes its API calls to the local backend.")
+    # Single Full UI mode: embed claude_ui.html full-page
+    st.markdown("# AAGCP Streamlit — Full UI")
+    st.write("This view embeds the full `claude_ui.html` UI and routes its API calls to the local backend.")
 
-        # Hard-coded API base (no user input)
-        api_base = "http://localhost:8000"
-        st.info(f"Using API base: {api_base} (hard-coded)")
+    # Hard-coded API base (no user input)
+    api_base = "http://localhost:8000"
+    st.info(f"Using API base: {api_base} (hard-coded)")
 
-        tpl = ROOT_DIR / "templates" / "claude_ui.html"
-        if not tpl.exists():
-                st.error("templates/claude_ui.html not found in the repo templates folder.")
-                return
+    tpl = ROOT_DIR / "templates" / "claude_ui.html"
+    if not tpl.exists():
+        st.error("templates/claude_ui.html not found in the repo templates folder.")
+        return
 
-        html = tpl.read_text(encoding="utf-8")
+    html = tpl.read_text(encoding="utf-8")
 
-        # Inject script to rewrite relative fetch() calls to the hard-coded API base
-        fetch_override = f"""
+    # Inject script to rewrite relative fetch() calls to the hard-coded API base
+    fetch_override = """
 <script>
-    (function(){
-        const API_BASE = '{api_base}';
-        const _fetch = window.fetch.bind(window);
-        window.fetch = function(input, init){
-            try{
-                if(typeof input === 'string'){
-                    if(input.startsWith('/')) input = API_BASE + input;
-                } else if(input instanceof Request){
-                    const url = new URL(input.url);
-                    if(url.origin === window.location.origin){
-                        input = new Request(API_BASE + url.pathname + url.search, input);
-                    }
-                }
-            }catch(e){/* ignore */}
-            return _fetch(input, init);
-        };
-    })();
+(function(){
+  const API_BASE = 'http://localhost:8000';
+  const _fetch = window.fetch.bind(window);
+  window.fetch = function(input, init) {
+    try {
+      if (typeof input === 'string') {
+        if (input.startsWith('/')) {
+          input = API_BASE + input;
+        }
+      } else if (input instanceof Request) {
+        const url = new URL(input.url);
+        if (url.origin === window.location.origin) {
+          input = new Request(API_BASE + url.pathname + url.search, input);
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+    return _fetch(input, init);
+  };
+})();
 </script>
 """
 
-        html_injected = html.replace('<body>', '<body>' + fetch_override)
+    html_injected = html.replace('<body>', '<body>' + fetch_override)
 
-        # Render full-page HTML; increase height so it fills the Streamlit viewport
-        components.html(html_injected, height=1800, scrolling=True)
+    # Render full-page HTML; increase height so it fills the Streamlit viewport
+    components.html(html_injected, height=1800, scrolling=True)
 
 
 if __name__ == "__main__":
