@@ -203,87 +203,45 @@ def render_page():
         if api_base:
             api_base = api_base.rstrip("/")
 
-        try:
-            import requests
-        except Exception:
-            st.error("The `requests` package is required for API mode. Install it in your environment.")
+        tpl = ROOT_DIR / "templates" / "claude_ui.html"
+        if not tpl.exists():
+            st.error("templates/claude_ui.html not found in the repo templates folder.")
             return
 
-        def api_url(path: str) -> str:
-            return f"{api_base}{path}"
+        html = tpl.read_text(encoding="utf-8")
 
-        col1, col2 = st.columns([1, 2])
+        # Inject a small script to prefix relative fetch() calls with API base URL
+        fetch_override = """
+<script>
+  (function(){
+    const API_BASE = window.parent && window.parent.ST_API_BASE ? window.parent.ST_API_BASE : '%API_BASE%';
+    if(!API_BASE || API_BASE === 'None') return;
+    const _fetch = window.fetch.bind(window);
+    window.fetch = function(input, init){
+      try{
+        if(typeof input === 'string'){
+          if(input.startsWith('/')) input = API_BASE + input;
+        } else if(input instanceof Request){
+          const url = new URL(input.url);
+          if(url.origin === window.location.origin){
+            input = new Request(API_BASE + url.pathname + url.search, input);
+          }
+        }
+      }catch(e){/* ignore */}
+      return _fetch(input, init);
+    };
+  })();
+</script>
+"""
 
-        with col1:
-            st.subheader("Backend actions")
-            if st.button("Get /api/status"):
-                if not api_base:
-                    st.error("Set API base URL first")
-                else:
-                    try:
-                        r = requests.get(api_url("/api/status"), timeout=20)
-                        st.json(r.json())
-                    except Exception as e:
-                        st.error(f"Status request failed: {e}")
+        # Replace placeholder with actual API base (escape single quotes)
+        fetch_override = fetch_override.replace('%API_BASE%', api_base.replace("'", "\\'") if api_base else '');
 
-            if st.button("Run /api/run-demo"):
-                if not api_base:
-                    st.error("Set API base URL first")
-                else:
-                    try:
-                        r = requests.post(api_url("/api/run-demo"), timeout=120)
-                        st.json(r.json())
-                    except Exception as e:
-                        st.error(f"Run-demo failed: {e}")
+        # Insert override right after <body> tag so it runs before the page JS
+        html_injected = html.replace('<body>', '<body>' + fetch_override)
 
-            if st.button("/rag/api/load-demo-data"):
-                if not api_base:
-                    st.error("Set API base URL first")
-                else:
-                    try:
-                        r = requests.post(api_url("/rag/api/load-demo-data"), timeout=60)
-                        st.json(r.json())
-                    except Exception as e:
-                        st.error(f"Load-demo failed: {e}")
-
-        with col2:
-            st.subheader("Upload file to RAG (/rag/upload)")
-            upload_file = st.file_uploader("Choose file to upload to RAG UI", type=["pdf", "docx", "xlsx", "xls", "txt"], key="fullui_upload")
-            mask_pii = st.checkbox("Mask PII before upload", value=True, key="fullui_mask")
-            if st.button("Upload to /rag/upload"):
-                if not api_base:
-                    st.error("Set API base URL first")
-                elif upload_file is None:
-                    st.error("Choose a file first")
-                else:
-                    try:
-                        files = {"file": (upload_file.name, upload_file.getvalue())}
-                        data = {"mask_pii": str(mask_pii)}
-                        r = requests.post(api_url("/rag/upload"), files=files, data=data, timeout=120)
-                        st.json(r.json())
-                    except Exception as e:
-                        st.error(f"Upload failed: {e}")
-
-            st.markdown("---")
-            st.subheader("Run RAG query")
-            auth_token = st.text_input("Auth token", value="admin_token", key="fullui_auth")
-            question = st.text_area("Question", value="What is the PII policy?", height=120, key="fullui_q")
-            mask_query = st.checkbox("Mask PII in query context", value=True, key="fullui_qmask")
-            if st.button("Call /rag/query"):
-                if not api_base:
-                    st.error("Set API base URL first")
-                elif not question.strip():
-                    st.error("Enter a question")
-                else:
-                    try:
-                        params = {"question": question, "authorization": auth_token, "mask_pii": str(mask_query)}
-                        r = requests.get(api_url("/rag/query"), params=params, timeout=60)
-                        st.json(r.json())
-                    except Exception as e:
-                        st.error(f"RAG query failed: {e}")
-
-        st.markdown("---")
-        st.info("Note: this tab calls your FastAPI backend directly. Run `uvicorn app:app --host 0.0.0.0 --port 8000` on the machine hosting the API and set `API base URL` accordingly.")
+        # Render the HTML inside Streamlit
+        components.html(html_injected, height=1100, scrolling=True)
 
 
 if __name__ == "__main__":
