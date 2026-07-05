@@ -5,6 +5,9 @@ from pathlib import Path
 
 import streamlit as st
 from dotenv import load_dotenv
+import subprocess
+import socket
+import time
 
 ROOT_DIR = Path(__file__).resolve().parent
 RAG_ROOT = ROOT_DIR / "pii-rag-main"
@@ -197,6 +200,37 @@ def render_page():
         )
         api_base = st.secrets.get("API_BASE") if hasattr(st, "secrets") else os.getenv("API_BASE", "")
 
+        def _is_port_open(host: str, port: int) -> bool:
+            try:
+                with socket.create_connection((host, port), timeout=1):
+                    return True
+            except Exception:
+                return False
+
+        def _start_local_backend() -> str | None:
+            """Start `app.py` with uvicorn in background and return the base URL or None."""
+            host = "127.0.0.1"
+            port = 8000
+            if _is_port_open(host, port):
+                return f"http://{host}:{port}"
+
+            app_file = ROOT_DIR / "app.py"
+            if not app_file.exists():
+                return None
+
+            try:
+                cmd = [sys.executable, "-m", "uvicorn", "app:app", "--host", host, "--port", str(port)]
+                subprocess.Popen(cmd, cwd=str(ROOT_DIR), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            except Exception:
+                return None
+
+            # Wait briefly for the server to start
+            for _ in range(20):
+                if _is_port_open(host, port):
+                    return f"http://{host}:{port}"
+                time.sleep(0.5)
+            return None
+
         if api_base:
             if api_base.startswith("http://localhost") or api_base.startswith("https://localhost"):
                 st.warning(
@@ -208,8 +242,17 @@ def render_page():
         else:
             st.info(
                 "No API_BASE is configured. This Streamlit page is not the backend app. "
-                "Use `app.py` directly on your server instead of this tab."
+                "You can start the local backend (app.py) below to enable the embedded UI."
             )
+            if st.button("Start local backend (app.py)"):
+                with st.spinner("Starting backend..."):
+                    base = _start_local_backend()
+                if base:
+                    os.environ["API_BASE"] = base
+                    st.success(f"Backend started at {base}")
+                    components.iframe(base.rstrip("/") + "/", height=1100)
+                else:
+                    st.error("Could not start local backend. Check logs or run app.py manually.")
 
 
 if __name__ == "__main__":
