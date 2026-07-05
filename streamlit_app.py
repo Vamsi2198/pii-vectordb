@@ -181,7 +181,7 @@ def render_page():
         "The RAG tab requires the same environment variables and dependencies as the existing FastAPI app."
     )
 
-    tab = st.tabs(["PII Masking", "RAG Retrieval", "Full UI"])
+    tab = st.tabs(["PII Masking", "RAG Retrieval", "Full UI (optional)"])
 
     with tab[0]:
         render_masking_tab()
@@ -190,30 +190,26 @@ def render_page():
         render_rag_tab()
 
     with tab[2]:
-        st.header("Full Claude UI")
+        st.header("Full Claude UI (optional)")
         st.write(
-            "This tab is optional. For a server-only deployment, run `app.py` on your server and open the backend URL directly. "
-            "Only use `API_BASE` if you want to embed the already-hosted FastAPI UI inside Streamlit."
+            "This tab is optional. It embeds the backend UI only when `API_BASE` is configured. "
+            "If you want server-only operation, deploy `app.py` on your server and open the backend URL directly."
         )
-        default_api_base = st.secrets.get("API_BASE") if hasattr(st, "secrets") else None
-        if not default_api_base:
-            default_api_base = os.getenv("API_BASE", "")
-        api_base = st.text_input("API base URL (include scheme)", value=default_api_base)
-        if not api_base:
-            st.warning(
-                "For server-only deployment, deploy `app.py` and open its URL directly instead of using this tab."
-            )
-        elif api_base.startswith("http://localhost") or api_base.startswith("https://localhost"):
-            st.warning(
-                "Localhost only works when Streamlit and FastAPI run on the same machine. "
-                "For remote use, set API_BASE to your deployed backend URL."
-            )
+        api_base = st.secrets.get("API_BASE") if hasattr(st, "secrets") else os.getenv("API_BASE", "")
 
         if api_base:
+            if api_base.startswith("http://localhost") or api_base.startswith("https://localhost"):
+                st.warning(
+                    "Localhost only works when Streamlit and FastAPI run on the same machine. "
+                    "For remote use, set API_BASE to your deployed backend URL."
+                )
             st.info("Embedding the backend UI from your deployed FastAPI host.")
             components.iframe(api_base.rstrip("/") + "/", height=1100)
         else:
-            st.error("Please enter your deployed FastAPI backend URL in API_BASE, or use the backend server directly.")
+            st.info(
+                "No API_BASE is configured. This Streamlit page is not the backend app. "
+                "Use `app.py` directly on your server instead of this tab."
+            )
 
 
 if __name__ == "__main__":
