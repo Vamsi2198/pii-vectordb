@@ -3,6 +3,7 @@
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.cors import CORSMiddleware
 import logging
 import traceback
 import importlib.util
@@ -24,6 +25,14 @@ from aagcp.migrate.migrator import Migrator
 from aagcp.retrieve.retriever import GovernedRetriever
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 template_root = Path(__file__).resolve().parent / "templates"
 static_root = Path(__file__).resolve().parent / "static"
