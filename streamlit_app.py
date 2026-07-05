@@ -190,47 +190,30 @@ def render_page():
         render_rag_tab()
 
     with tab[2]:
-        st.header("Full Claude UI (embedded)")
-        st.write("Embed the existing `templates/claude_ui.html` inside Streamlit.\n\nSet `API_BASE` to the host serving the FastAPI backend so the page's fetch() calls route correctly.")
-        api_base = st.text_input("API base URL (include scheme)", value=os.getenv("API_BASE", "http://localhost:8000"))
-        embed_via_iframe = st.checkbox("Use iframe instead of embedding HTML (simpler)", value=False)
+        st.header("Full Claude UI")
+        st.write(
+            "Display the existing `templates/claude_ui.html` UI from your deployed FastAPI backend. "
+            "Enter the backend’s public URL in API_BASE and use iframe mode."
+        )
+        default_api_base = st.secrets.get("API_BASE") if hasattr(st, "secrets") else None
+        if not default_api_base:
+            default_api_base = os.getenv("API_BASE", "")
+        api_base = st.text_input("API base URL (include scheme)", value=default_api_base)
+        if not api_base:
+            st.warning(
+                "API_BASE is not configured. Enter the public URL of your deployed FastAPI backend, e.g. https://my-backend.onrender.com"
+            )
+        elif api_base.startswith("http://localhost") or api_base.startswith("https://localhost"):
+            st.warning(
+                "Localhost only works when Streamlit and FastAPI run on the same machine. "
+                "For remote use, set API_BASE to your deployed backend URL."
+            )
 
-        template_path = ROOT_DIR / "templates" / "claude_ui.html"
-        if not template_path.exists():
-            st.error(f"templates/claude_ui.html not found at {template_path}")
+        if api_base:
+            st.info("Embedding the backend UI from your deployed FastAPI host.")
+            components.iframe(api_base.rstrip("/") + "/", height=1100)
         else:
-            if embed_via_iframe:
-                st.info("Embedding via iframe — make sure the backend is reachable at the API base URL and allows embedding.")
-                components.iframe(api_base.rstrip("/") + "/", height=1100)
-            else:
-                html = template_path.read_text(encoding="utf-8")
-                host = api_base.rstrip("/")
-                # Rewrite common absolute root paths to target the API backend
-                html = html.replace('"/rag/', f'"{host}/rag/')
-                html = html.replace("'/rag/", f"'{host}/rag/")
-                html = html.replace('"/api/', f'"{host}/api/')
-                html = html.replace("'/api/", f"'{host}/api/")
-                html = html.replace('"/static/', f'"{host}/static/')
-                html = html.replace("'/static/", f"'{host}/static/")
-
-                # Inject a small script that defines window.API_BASE and prefixes relative fetch() calls
-                prefix_script = (
-                    "<script>"
-                    f"window.API_BASE = '{host}';"
-                    + "(function(){const _fetch = window.fetch; window.fetch = function(input, init){"
-                    + "try{ if(typeof input === 'string' && input.startsWith('/')) input = window.API_BASE + input; }catch(e){} return _fetch(input, init); };})();"
-                    + "</script>"
-                )
-
-                # Insert prefix_script inside <head> if present, otherwise prepend
-                head_index = html.lower().find('<head>')
-                if head_index != -1:
-                    insert_pos = head_index + len('<head>')
-                    html = html[:insert_pos] + prefix_script + html[insert_pos:]
-                else:
-                    html = prefix_script + html
-
-                components.html(html, height=1100, scrolling=True)
+            st.error("Please enter your deployed FastAPI backend URL in API_BASE.")
 
 
 if __name__ == "__main__":
