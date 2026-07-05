@@ -195,64 +195,95 @@ def render_page():
     with tab[2]:
         st.header("Full Claude UI (optional)")
         st.write(
-            "This tab is optional. It embeds the backend UI only when `API_BASE` is configured. "
-            "If you want server-only operation, deploy `app.py` on your server and open the backend URL directly."
+            "This tab calls the backend APIs directly. Set `API_BASE` to your running FastAPI host "
+            "(for example http://127.0.0.1:8000) and then use the controls below."
         )
-        api_base = st.secrets.get("API_BASE") if hasattr(st, "secrets") else os.getenv("API_BASE", "")
 
-        def _is_port_open(host: str, port: int) -> bool:
-            try:
-                with socket.create_connection((host, port), timeout=1):
-                    return True
-            except Exception:
-                return False
-
-        def _start_local_backend() -> str | None:
-            """Start `app.py` with uvicorn in background and return the base URL or None."""
-            host = "127.0.0.1"
-            port = 8000
-            if _is_port_open(host, port):
-                return f"http://{host}:{port}"
-
-            app_file = ROOT_DIR / "app.py"
-            if not app_file.exists():
-                return None
-
-            try:
-                cmd = [sys.executable, "-m", "uvicorn", "app:app", "--host", host, "--port", str(port)]
-                subprocess.Popen(cmd, cwd=str(ROOT_DIR), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            except Exception:
-                return None
-
-            # Wait briefly for the server to start
-            for _ in range(20):
-                if _is_port_open(host, port):
-                    return f"http://{host}:{port}"
-                time.sleep(0.5)
-            return None
-
+        api_base = st.text_input("API base URL", value=(st.secrets.get("API_BASE") if hasattr(st, "secrets") else os.getenv("API_BASE", "")))
         if api_base:
-            if api_base.startswith("http://localhost") or api_base.startswith("https://localhost"):
-                st.warning(
-                    "Localhost only works when Streamlit and FastAPI run on the same machine. "
-                    "For remote use, set API_BASE to your deployed backend URL."
-                )
-            st.info("Embedding the backend UI from your deployed FastAPI host.")
-            components.iframe(api_base.rstrip("/") + "/", height=1100)
-        else:
-            st.info(
-                "No API_BASE is configured. This Streamlit page is not the backend app. "
-                "You can start the local backend (app.py) below to enable the embedded UI."
-            )
-            if st.button("Start local backend (app.py)"):
-                with st.spinner("Starting backend..."):
-                    base = _start_local_backend()
-                if base:
-                    os.environ["API_BASE"] = base
-                    st.success(f"Backend started at {base}")
-                    components.iframe(base.rstrip("/") + "/", height=1100)
+            api_base = api_base.rstrip("/")
+
+        try:
+            import requests
+        except Exception:
+            st.error("The `requests` package is required for API mode. Install it in your environment.")
+            return
+
+        def api_url(path: str) -> str:
+            return f"{api_base}{path}"
+
+        col1, col2 = st.columns([1, 2])
+
+        with col1:
+            st.subheader("Backend actions")
+            if st.button("Get /api/status"):
+                if not api_base:
+                    st.error("Set API base URL first")
                 else:
-                    st.error("Could not start local backend. Check logs or run app.py manually.")
+                    try:
+                        r = requests.get(api_url("/api/status"), timeout=20)
+                        st.json(r.json())
+                    except Exception as e:
+                        st.error(f"Status request failed: {e}")
+
+            if st.button("Run /api/run-demo"):
+                if not api_base:
+                    st.error("Set API base URL first")
+                else:
+                    try:
+                        r = requests.post(api_url("/api/run-demo"), timeout=120)
+                        st.json(r.json())
+                    except Exception as e:
+                        st.error(f"Run-demo failed: {e}")
+
+            if st.button("/rag/api/load-demo-data"):
+                if not api_base:
+                    st.error("Set API base URL first")
+                else:
+                    try:
+                        r = requests.post(api_url("/rag/api/load-demo-data"), timeout=60)
+                        st.json(r.json())
+                    except Exception as e:
+                        st.error(f"Load-demo failed: {e}")
+
+        with col2:
+            st.subheader("Upload file to RAG (/rag/upload)")
+            upload_file = st.file_uploader("Choose file to upload to RAG UI", type=["pdf", "docx", "xlsx", "xls", "txt"], key="fullui_upload")
+            mask_pii = st.checkbox("Mask PII before upload", value=True, key="fullui_mask")
+            if st.button("Upload to /rag/upload"):
+                if not api_base:
+                    st.error("Set API base URL first")
+                elif upload_file is None:
+                    st.error("Choose a file first")
+                else:
+                    try:
+                        files = {"file": (upload_file.name, upload_file.getvalue())}
+                        data = {"mask_pii": str(mask_pii)}
+                        r = requests.post(api_url("/rag/upload"), files=files, data=data, timeout=120)
+                        st.json(r.json())
+                    except Exception as e:
+                        st.error(f"Upload failed: {e}")
+
+            st.markdown("---")
+            st.subheader("Run RAG query")
+            auth_token = st.text_input("Auth token", value="admin_token", key="fullui_auth")
+            question = st.text_area("Question", value="What is the PII policy?", height=120, key="fullui_q")
+            mask_query = st.checkbox("Mask PII in query context", value=True, key="fullui_qmask")
+            if st.button("Call /rag/query"):
+                if not api_base:
+                    st.error("Set API base URL first")
+                elif not question.strip():
+                    st.error("Enter a question")
+                else:
+                    try:
+                        params = {"question": question, "authorization": auth_token, "mask_pii": str(mask_query)}
+                        r = requests.get(api_url("/rag/query"), params=params, timeout=60)
+                        st.json(r.json())
+                    except Exception as e:
+                        st.error(f"RAG query failed: {e}")
+
+        st.markdown("---")
+        st.info("Note: this tab calls your FastAPI backend directly. Run `uvicorn app:app --host 0.0.0.0 --port 8000` on the machine hosting the API and set `API base URL` accordingly.")
 
 
 if __name__ == "__main__":
